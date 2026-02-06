@@ -1,14 +1,6 @@
 import { Barcode, Search } from "lucide-react";
 
 const ScanProductsCard = () => {
-  const testBarcodes = [
-    ["Coca Cola", "123456789"],
-    ["Doritos Nacho Cheese", "987654321"],
-    ["Snickers Bar", "456789123"],
-    ["Milk 1 Gallon", "789123456"],
-    ["Bread", "321654987"],
-    ["Bananas (lb)", "654987321"],
-  ];
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white shadow-md">
@@ -49,18 +41,6 @@ const ScanProductsCard = () => {
             <Search className="h-4 w-4" /> Find
           </button>
         </form>
-
-        <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-          <h3 className="font-medium mb-2">Available Test Barcodes:</h3>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            {testBarcodes.map(([name, code]) => (
-              <div key={code} className="flex justify-between">
-                <span>{name}:</span>
-                <span className="font-mono">{code}</span>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
