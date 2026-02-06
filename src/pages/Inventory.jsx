@@ -1,11 +1,41 @@
 import { ListFilter, Search, SquarePen, TriangleAlert } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const Inventory = () => {
-  const products = [
-    { barcode: "123456789", name: "Coca Cola", category: "Beverages", price: 1.99, stock: 15, status: "In Stock" },
-    { barcode: "987654321", name: "Doritos Nacho Cheese", category: "Snacks", price: 3.49, stock: 8, status: "In Stock" },
-    { barcode: "456789123", name: "Snickers Bar", category: "Candy", price: 1.29, stock: 20, status: "In Stock" },
-  ];
+  const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState("");
+
+  const load = async () => {
+    const medicines = await window.api.listMedicines();
+
+    const formatted = medicines.map((m) => {
+      const prices = JSON.parse(m.prices || '{"tablet":0,"strip":0,"box":0}');
+      const stock = m.stockTablets || 0;
+
+      // Status logic
+      const status =
+        stock === 0 ? "Out of Stock" : stock < 20 ? "Low Stock" : "In Stock";
+
+      return {
+        ...m,
+        prices,
+        stock,
+        status,
+      };
+    });
+
+    setProducts(formatted);
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const filteredProducts = products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.barcode && p.barcode.includes(search))
+  );
 
   return (
     <div className="mt-4 rounded-lg border border-gray-200 bg-white text-gray-900 shadow-sm">
@@ -14,9 +44,7 @@ const Inventory = () => {
         <h3 className="text-2xl font-semibold flex items-center">
           <ListFilter className="mr-2 h-5 w-5 text-gray-700" /> Inventory Management
         </h3>
-        <p className="text-sm text-gray-500">
-          View and manage your product inventory
-        </p>
+        <p className="text-sm text-gray-500">View and manage your product inventory</p>
       </div>
 
       {/* Search */}
@@ -26,6 +54,8 @@ const Inventory = () => {
           <input
             type="text"
             placeholder="Search products..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             className="flex h-10 w-[300px] rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -37,38 +67,64 @@ const Inventory = () => {
               <tr>
                 <th className="p-4 text-left font-medium text-gray-500">Barcode</th>
                 <th className="p-4 text-left font-medium text-gray-500">Product</th>
-                <th className="p-4 text-left font-medium text-gray-500">Category</th>
-                <th className="p-4 text-left font-medium text-gray-500">Price</th>
-                <th className="p-4 text-left font-medium text-gray-500">Stock</th>
+                <th className="p-4 text-left font-medium text-gray-500">Price (Tablet / Strip / Box)</th>
+                <th className="p-4 text-left font-medium text-gray-500">Stock (Tablets)</th>
                 <th className="p-4 text-left font-medium text-gray-500">Status</th>
                 <th className="p-4 text-right font-medium text-gray-500">Actions</th>
               </tr>
             </thead>
 
             <tbody>
-              {products.map((p) => (
-                <tr key={p.barcode} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="p-4 font-mono text-gray-700">{p.barcode}</td>
+              {filteredProducts.map((p) => (
+                <tr key={p.id} className="border-b border-gray-200 hover:bg-gray-50">
+                  <td className="p-4 font-mono text-gray-700">{p.barcode || "-"}</td>
                   <td className="p-4 font-medium text-gray-900">{p.name}</td>
-                  <td className="p-4 text-gray-700">{p.category}</td>
-                  <td className="p-4 text-gray-700">${p.price.toFixed(2)}</td>
+                  <td className="p-4 text-gray-700">
+                    {p.prices.tablet || 0} / {p.prices.strip || 0} / {p.prices.box || 0}
+                  </td>
                   <td className="p-4 text-gray-700">{p.stock}</td>
                   <td className="p-4">
-                    <div className={`rounded-full px-2.5 py-0.5 text-xs font-semibold flex items-center w-fit
-                      ${p.status === "In Stock" ? "border border-green-300 bg-green-50 text-green-700" : 
-                        "border border-red-300 bg-red-50 text-red-700"}`}>
-                      {p.status === "In Stock" ? p.status : <><TriangleAlert className="h-3 w-3 mr-1" /> {p.status}</>}
+                    <div
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold flex items-center w-fit ${
+                        p.status === "In Stock"
+                          ? "border border-green-300 bg-green-50 text-green-700"
+                          : p.status === "Low Stock"
+                          ? "border border-yellow-300 bg-yellow-50 text-yellow-700"
+                          : "border border-red-300 bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {p.status === "In Stock" || p.status === "Low Stock" ? (
+                        p.status
+                      ) : (
+                        <>
+                          <TriangleAlert className="h-3 w-3 mr-1" /> {p.status}
+                        </>
+                      )}
                     </div>
                   </td>
                   <td className="p-4 text-right">
-                    <button className="inline-flex items-center gap-2 text-sm font-medium h-9 rounded-md px-3 hover:bg-gray-100 hover:text-gray-900">
+                    <button
+                      className="inline-flex items-center gap-2 text-sm font-medium h-9 rounded-md px-3 hover:bg-gray-100 hover:text-gray-900"
+                      onClick={async () => {
+                        const newStock = prompt(
+                          "Enter new stock quantity (tablets)",
+                          p.stock
+                        );
+                        if (newStock !== null) {
+                          await window.api.updateStock({
+                            id: p.id,
+                            stockTablets: Number(newStock),
+                          });
+                          load();
+                        }
+                      }}
+                    >
                       <SquarePen className="h-4 w-4 mr-1" /> Edit Stock
                     </button>
                   </td>
                 </tr>
               ))}
             </tbody>
-
           </table>
         </div>
       </div>
