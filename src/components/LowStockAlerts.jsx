@@ -1,36 +1,61 @@
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert, AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const LowStockAlerts = () => {
-  const products = [
-    { name: "Tylenol Extra Strength", code: "258369147", status: "Out of Stock", type: "destructive" },
-    { name: "Toilet Paper 12pk", code: "147258369", status: "2 left", type: "neutral" },
-    { name: "Bread", code: "321654987", status: "3 left", type: "neutral" },
-  ];
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const loadLowStockProducts = async () => {
+      try {
+        const lowStockProducts = await window.api.listLowStockAlerts();
+        setProducts(lowStockProducts);
+      } catch (err) {
+        console.error("Error loading low stock alerts:", err);
+      }
+    };
+
+    loadLowStockProducts();
+    const interval = setInterval(loadLowStockProducts, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white shadow-md">
       <div className="flex flex-col space-y-1.5 p-6 pb-2">
         <h3 className="font-semibold tracking-tight text-lg flex items-center">
-          <TriangleAlert className="h-5 w-5 mr-2 text-amber-500" /> Low Stock Alerts
+          <AlertCircle className="h-5 w-5 mr-2 text-amber-500" /> Low Stock Alerts
         </h3>
         <p className="text-sm text-gray-500">Products that need to be restocked soon</p>
       </div>
-      <div className="p-6 pt-0 space-y-2">
-        {products.map((p) => (
-          <div key={p.code} className="flex items-center justify-between border-b pb-2">
-            <div>
-              <div className="font-medium">{p.name}</div>
-              <div className="text-xs text-gray-400">{p.code}</div>
-            </div>
-            <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-              p.type === "destructive"
-                ? "bg-red-100 text-red-700 border-red-200"
-                : "bg-gray-100 text-gray-700 border-gray-200"
-            }`}>
-              {p.status}
-            </div>
+      <div className="p-6 pt-0 space-y-2 max-h-80 overflow-auto">
+        {products.length === 0 ? (
+          <div className="text-center py-6 text-gray-400 text-sm">
+            No low stock items
           </div>
-        ))}
+        ) : (
+          products.map((p) => (
+            <div key={p.id} className="flex items-center justify-between border-b pb-3 last:border-b-0">
+              <div>
+                <div className="font-medium text-sm">{p.name}</div>
+                <div className="text-xs text-gray-400">{p.barcode || "No barcode"}</div>
+              </div>
+              <div className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${
+                p.quantity === 0
+                  ? "bg-red-100 text-red-700 border-red-200"
+                  : "bg-yellow-100 text-yellow-700 border-yellow-200"
+              }`}>
+                {p.quantity === 0 ? (
+                  <>
+                    <TriangleAlert className="h-3 w-3 mr-1" /> Out of Stock
+                  </>
+                ) : (
+                  <>{p.quantity} left</>
+                )}
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
