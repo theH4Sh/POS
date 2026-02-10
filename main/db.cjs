@@ -9,11 +9,9 @@ const medicines = sqliteTable("medicines", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   barcode: text("barcode"),
-  tabletsPerStrip: integer("tablets_per_strip").notNull().default(1),
-  stripsPerBox: integer("strips_per_box").notNull().default(1),
-  stockTablets: integer("stock_tablets").notNull().default(0),
-  purchasePriceBox: integer("purchase_price_box").notNull().default(0),
-  prices: text("prices").notNull().default('{"tablet":0,"strip":0,"box":0}'), // store as string
+  type: text("type").default(""), // new field for medicine type
+  quantity: integer("quantity").notNull().default(0),
+  price: text("price").notNull().default("0"), // store as string
   description: text("description").default(""),
 });
 
@@ -23,11 +21,9 @@ db.prepare(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     barcode TEXT,
-    tablets_per_strip INTEGER NOT NULL DEFAULT 1,
-    strips_per_box INTEGER NOT NULL DEFAULT 1,
-    stock_tablets INTEGER NOT NULL DEFAULT 0,
-    purchase_price_box INTEGER NOT NULL DEFAULT 0,
-    prices TEXT NOT NULL DEFAULT '{"tablet":0,"strip":0,"box":0}',
+    type TEXT DEFAULT '',
+    quantity INTEGER NOT NULL DEFAULT 0,
+    price TEXT NOT NULL DEFAULT '0',
     description TEXT DEFAULT ''
   )
 `).run();
