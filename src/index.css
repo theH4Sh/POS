@@ -13,5 +13,5 @@
 body {
   min-width: 320px;
   min-height: 100vh;
-  @apply bg-gradient-to-br from-blue-50 to-indigo-100 p-6
+  @apply bg-gradient-to-br from-blue-50 to-indigo-100
 }
