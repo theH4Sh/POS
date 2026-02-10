@@ -12,6 +12,7 @@ import "./App.css";
 import AddProduct from "./pages/AddProduct";
 import Checkout from "./pages/Checkout";
 import Inventory from "./pages/Inventory";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
   const router = createHashRouter(
@@ -20,6 +21,7 @@ export default function App() {
         <Route index element={<Checkout />} />
         <Route path="add-product" element={<AddProduct />} />
         <Route path="manage-inventory" element={<Inventory />} />
+        <Route path="dashboard" element={<Dashboard />} />
       </Route>
     )
   );

@@ -138,6 +138,115 @@ ipcMain.handle("order:create", (_, data) => {
   }
 });
 
+// Get dashboard statistics
+ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
+  try {
+    const now = new Date();
+    let startDate, endDate;
+    
+    // Handle both string period and object with {period, year}
+    let period = typeof params === "string" ? params : params.period;
+    const customYear = typeof params === "object" ? params.year : null;
+
+    // Calculate date range based on period
+    if (period === "daily") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    } else if (period === "monthly") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    } else if (period === "yearly") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+      endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    } else if (period === "custom-year" && customYear) {
+      startDate = new Date(customYear, 0, 1);
+      endDate = new Date(customYear, 11, 31, 23, 59, 59, 999);
+    } else {
+      // overall - no date filter
+      startDate = new Date(0);
+      endDate = new Date();
+    }
+
+    // Get all products
+    const products = db.prepare(`SELECT * FROM products`).all();
+
+    // Get orders within date range
+    let orders = db.prepare(`SELECT * FROM orders`).all();
+    
+    if (period !== "overall") {
+      orders = orders.filter((order) => {
+        const orderDate = new Date(order.createdAt);
+        return orderDate >= startDate && orderDate <= endDate;
+      });
+    }
+
+    // Calculate stats
+    let totalRevenue = 0;
+    let totalCost = 0;
+    let totalOrders = orders.length;
+    let recentOrders = [];
+
+    orders.forEach((order) => {
+      const items = JSON.parse(order.items || '[]');
+      totalRevenue += parseFloat(order.total || 0);
+
+      items.forEach((item) => {
+        totalCost += parseFloat(item.purchasePrice || 0) * item.quantity;
+      });
+
+      recentOrders.push({
+        id: order.id,
+        total: order.total,
+        itemCount: items.length,
+        createdAt: order.createdAt,
+      });
+    });
+
+    recentOrders = recentOrders.slice(-10).reverse();
+
+    // Get top products by sales
+    const productSales = {};
+    orders.forEach((order) => {
+      const items = JSON.parse(order.items || '[]');
+      items.forEach((item) => {
+        if (!productSales[item.id]) {
+          productSales[item.id] = {
+            name: item.name,
+            category: item.category,
+            orders: 0,
+            revenue: 0,
+          };
+        }
+        productSales[item.id].orders += 1;
+        productSales[item.id].revenue += parseFloat(item.salePrice) * item.quantity;
+      });
+    });
+
+    const topProducts = Object.values(productSales)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    // Get low stock products (always overall, not period-specific)
+    const lowStockCount = products.filter((p) => p.quantity < 20).length;
+
+    return {
+      stats: {
+        totalRevenue: totalRevenue.toFixed(2),
+        totalCost: totalCost.toFixed(2),
+        profit: (totalRevenue - totalCost).toFixed(2),
+        totalOrders,
+        totalProducts: products.length,
+        lowStockCount,
+      },
+      topProducts,
+      recentOrders,
+    };
+  } catch (err) {
+    console.error("Error getting dashboard stats:", err);
+    throw err;
+  }
+});
+
 // ===== START APP AFTER HANDLERS ARE REGISTERED =====
 
 app.whenReady().then(createWindow);

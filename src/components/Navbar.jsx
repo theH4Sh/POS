@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { ShoppingCart, Plus, ListFilter } from "lucide-react";
+import { ShoppingCart, Plus, ListFilter, TrendingUp } from "lucide-react";
 
 export const Navbar = () => {
   const baseLink =
@@ -67,6 +67,21 @@ export const Navbar = () => {
             >
               <ListFilter className="h-4.5 w-4.5" />
               <span>Manage Inventory</span>
+            </NavLink>
+
+            <NavLink
+              to="/dashboard"
+              role="tab"
+              className={({ isActive }) =>
+                `${baseLink} ${
+                  isActive
+                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-105"
+                    : "text-gray-600 hover:text-blue-600 hover:bg-white"
+                }`
+              }
+            >
+              <TrendingUp className="h-4.5 w-4.5" />
+              <span>Analytics</span>
             </NavLink>
           </div>
         </div>
