@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const Dashboard = () => {
+const Dashboard = ({ user }) => {
+  const navigate = useNavigate();
+  
+  // Redirect if not admin
+  useEffect(() => {
+    if (user?.role !== "admin") {
+      navigate("/");
+    }
+  }, [user, navigate]);
   const [period, setPeriod] = useState("monthly");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [stats, setStats] = useState({

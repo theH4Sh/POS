@@ -24,6 +24,15 @@ const orders = sqliteTable("orders", {
   createdAt: text("createdAt").default(new Date().toISOString()),
 });
 
+// Users schema for authentication
+const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  username: text("username").notNull(),
+  password: text("password").notNull(),
+  role: text("role").notNull().default("cashier"), // 'admin' or 'cashier'
+  createdAt: text("createdAt").default(new Date().toISOString()),
+});
+
 // Create tables if not exists
 db.exec(`
   CREATE TABLE IF NOT EXISTS products (
@@ -43,8 +52,28 @@ db.exec(`
     total TEXT NOT NULL,
     createdAt TEXT DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'cashier',
+    createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+  );
 `);
+
+// Create default admin if none exists
+const adminExists = db.prepare(`SELECT COUNT(*) as cnt FROM users WHERE role = 'admin'`).get();
+if (adminExists.cnt === 0) {
+  // Simple hash function (in production use bcrypt)
+  const defaultPassword = "admin123";
+  db.prepare(`
+    INSERT INTO users (username, password, role)
+    VALUES (?, ?, ?)
+  `).run("admin", defaultPassword, "admin");
+  console.log("✓ Default admin created - username: admin, password: admin123");
+}
 
 const orm = drizzle(db);
 
-module.exports = { db, orm, products, orders };
+module.exports = { db, orm, products, orders, users };

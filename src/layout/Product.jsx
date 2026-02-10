@@ -1,10 +1,10 @@
 import { Outlet } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 
-const Product = () => {
+const Product = ({ user, onLogout }) => {
   return ( 
     <div className="w-full">
-      <Navbar />
+      <Navbar user={user} onLogout={onLogout} />
       <div className="">
         <Outlet />
       </div>

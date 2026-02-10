@@ -3,6 +3,7 @@ const path = require("path");
 const { db, orm, products, orders } = require("./db.cjs");
 
 let mainWindow;
+let currentUser = null; // Store current logged-in user
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -20,6 +21,74 @@ function createWindow() {
 }
 
 // ===== REGISTER ALL HANDLERS FIRST =====
+
+// ===== AUTH HANDLERS =====
+
+// Login handler
+ipcMain.handle("auth:login", (_, { username, password }) => {
+  try {
+    const user = db.prepare(`SELECT * FROM users WHERE username = ? AND password = ?`).get(username, password);
+    if (!user) {
+      return { success: false, message: "Invalid username or password" };
+    }
+    currentUser = { id: user.id, username: user.username, role: user.role };
+    return { success: true, user: currentUser };
+  } catch (err) {
+    console.error("Login error:", err);
+    return { success: false, message: "Login failed" };
+  }
+});
+
+// Logout handler
+ipcMain.handle("auth:logout", () => {
+  currentUser = null;
+  return { success: true };
+});
+
+// Get current user
+ipcMain.handle("auth:getCurrentUser", () => {
+  return currentUser;
+});
+
+// Register cashier (admin only)
+ipcMain.handle("auth:registerCashier", (_, { username, password }) => {
+  try {
+    if (!currentUser || currentUser.role !== "admin") {
+      return { success: false, message: "Unauthorized - admin only" };
+    }
+
+    // Check if username already exists
+    const exists = db.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
+    if (exists) {
+      return { success: false, message: "Username already exists" };
+    }
+
+    // Insert new cashier
+    db.prepare(`
+      INSERT INTO users (username, password, role)
+      VALUES (?, ?, ?)
+    `).run(username, password, "cashier");
+
+    return { success: true, message: `Cashier '${username}' created successfully` };
+  } catch (err) {
+    console.error("Register error:", err);
+    return { success: false, message: "Registration failed" };
+  }
+});
+
+// Get all cashiers (admin only)
+ipcMain.handle("auth:getCashiers", () => {
+  try {
+    if (!currentUser || currentUser.role !== "admin") {
+      return [];
+    }
+    const cashiers = db.prepare(`SELECT id, username, role, createdAt FROM users WHERE role = 'cashier'`).all();
+    return cashiers;
+  } catch (err) {
+    console.error("Error fetching cashiers:", err);
+    return [];
+  }
+});
 
 // Add product
 ipcMain.handle("medicine:add", (_, data) => {
