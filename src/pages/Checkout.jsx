@@ -3,12 +3,38 @@ import CartItemsCard from "../components/CartItemsCard";
 import ReceiptCard from "../components/ReceiptCard";
 import LowStockAlerts from "../components/LowStockAlerts";
 import { useState } from "react";
+import { Plus, X } from "lucide-react";
 
 const Checkout = () => {
-  const [cart, setCart] = useState([]);
+  const [carts, setCarts] = useState([[]]);
+  const [activeCartIndex, setActiveCartIndex] = useState(0);
   const [lastOrder, setLastOrder] = useState(null);
   const [checkoutMessage, setCheckoutMessage] = useState("");
-  const [discount, setDiscount] = useState(0); // 0, 5, or 10 for percentage
+  const [discount, setDiscount] = useState(0);
+
+  const cart = carts[activeCartIndex] || [];
+  
+  const setCart = (newCart) => {
+    const newCarts = [...carts];
+    newCarts[activeCartIndex] = newCart;
+    setCarts(newCarts);
+  };
+
+  const addNewCart = () => {
+    setCarts([...carts, []]);
+    setActiveCartIndex(carts.length);
+  };
+
+  const deleteCart = (index) => {
+    if (carts.length === 1) return; // Keep at least one cart
+    const newCarts = carts.filter((_, i) => i !== index);
+    setCarts(newCarts);
+    if (activeCartIndex >= newCarts.length) {
+      setActiveCartIndex(newCarts.length - 1);
+    } else {
+      setActiveCartIndex(activeCartIndex);
+    }
+  };
 
   const handleProductScanned = (product) => {
     // Check if product already in cart
@@ -77,6 +103,12 @@ const Checkout = () => {
     setDiscount(0);
   };
 
+  const switchCart = (index) => {
+    setActiveCartIndex(index);
+    setCheckoutMessage("");
+    setDiscount(0);
+  };
+
   const handleCheckout = async () => {
     if (cart.length === 0) {
       setCheckoutMessage("Cart is empty!");
@@ -137,6 +169,57 @@ const Checkout = () => {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
       {/* Left / Main Column */}
       <div className="md:col-span-2 space-y-6">
+        {/* Cart Tabs */}
+        <div className="flex gap-3 items-center bg-gradient-to-r from-white to-blue-50 p-4 rounded-xl shadow-md border border-gray-200">
+          <div className="flex gap-2 flex-1 overflow-x-auto pb-2">
+            {carts.map((cartItems, index) => (
+              <div
+                key={index}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition relative group ${
+                  activeCartIndex === index
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                <button
+                  onClick={() => switchCart(index)}
+                  className="flex-1 text-left"
+                >
+                  Customer {index + 1}
+                </button>
+                {cartItems.length > 0 && (
+                  <span className={`text-xs px-2 py-1 rounded font-bold ${
+                    activeCartIndex === index
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-700'
+                  }`}>
+                    {cartItems.length}
+                  </span>
+                )}
+                {carts.length > 1 && (
+                  <button
+                    onClick={() => deleteCart(index)}
+                    className={`ml-1 p-1 rounded transition ${
+                      activeCartIndex === index
+                        ? 'hover:bg-blue-500 text-white'
+                        : 'hover:bg-red-100 text-red-600'
+                    }`}
+                    title="Close cart"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={addNewCart}
+            className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 flex items-center gap-2 transition shadow-md whitespace-nowrap"
+          >
+            <Plus className="h-4 w-4" /> New
+          </button>
+        </div>
+
         <ScanProductsCard onProductScanned={handleProductScanned} />
         <CartItemsCard
           cart={cart}
