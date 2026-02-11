@@ -1,16 +1,23 @@
 import { Printer } from "lucide-react";
 import "../App.css"
 
-const ReceiptCard = ({ cart, lastOrder }) => {
-  const total = cart.reduce(
+const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
+  const subtotal = cart.reduce(
     (acc, item) => acc + parseFloat(item.salePrice) * item.quantity,
     0
   );
+  
+  const discountAmount = (subtotal * discount / 100);
+  const total = subtotal - discountAmount;
 
   const displayOrder = lastOrder || {
     items: cart,
     total: total.toFixed(2),
+    originalTotal: subtotal.toFixed(2),
+    discount: discount,
+    discountAmount: discountAmount.toFixed(2),
     date: new Date().toLocaleString(),
+    isRefund: total < 0,
   };
 
   const handlePrint = () => {
@@ -69,6 +76,20 @@ const ReceiptCard = ({ cart, lastOrder }) => {
           )}
 
           <div className="border-t border-dashed border-black my-3"></div>
+
+          {/* Subtotal & Discount */}
+          {displayOrder.discount > 0 && (
+            <>
+              <div className="flex justify-between font-bold text-sm mb-1">
+                <span>SUBTOTAL</span>
+                <span>{displayOrder.originalTotal}</span>
+              </div>
+              <div className="flex justify-between text-sm text-red-600 mb-2">
+                <span>DISCOUNT ({displayOrder.discount}%)</span>
+                <span>-{displayOrder.discountAmount}</span>
+              </div>
+            </>
+          )}
 
           {/* Total */}
           <div className={`receipt-item flex justify-between font-bold text-sm ${displayOrder.isRefund ? 'text-red-600' : ''}`}>

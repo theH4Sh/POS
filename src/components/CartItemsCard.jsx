@@ -6,11 +6,16 @@ const CartItemsCard = ({
   onRemoveItem,
   onClearCart,
   onCheckout,
+  discount = 0,
+  onDiscountChange = () => {},
 }) => {
-  const total = cart.reduce(
+  const subtotal = cart.reduce(
     (acc, item) => acc + Number(item.salePrice) * item.quantity,
     0
   );
+  
+  const discountAmount = (subtotal * discount / 100);
+  const total = subtotal - discountAmount;
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-md flex flex-col">
@@ -148,20 +153,70 @@ const CartItemsCard = ({
       </div>
 
       {/* Footer */}
-      <div className="p-6 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+      <div className="p-6 border-t border-gray-200 space-y-4 bg-gray-50">
         
-        <button
-          onClick={onClearCart}
-          disabled={cart.length === 0}
-          className="border border-gray-300 bg-white px-4 h-10 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Clear Cart
-        </button>
+        {/* Discount Buttons */}
+        <div className="flex gap-2 items-center">
+          <span className="text-sm font-medium text-gray-700">Discount:</span>
+          <button
+            onClick={() => onDiscountChange(0)}
+            className={`px-3 py-1 rounded text-sm font-medium transition ${
+              discount === 0
+                ? 'bg-blue-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            None
+          </button>
+          <button
+            onClick={() => onDiscountChange(5)}
+            className={`px-3 py-1 rounded text-sm font-medium transition ${
+              discount === 5
+                ? 'bg-blue-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            5%
+          </button>
+          <button
+            onClick={() => onDiscountChange(10)}
+            className={`px-3 py-1 rounded text-sm font-medium transition ${
+              discount === 10
+                ? 'bg-blue-600 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            10%
+          </button>
+        </div>
 
-        <div className="flex items-center gap-6">
-          <div className="text-2xl font-bold text-gray-900">
-            ₨ {total.toFixed(2)}
+        {/* Totals */}
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between text-gray-700">
+            <span>Subtotal:</span>
+            <span>₨ {subtotal.toFixed(2)}</span>
           </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-red-600 font-medium">
+              <span>Discount ({discount}%):</span>
+              <span>-₨ {discountAmount.toFixed(2)}</span>
+            </div>
+          )}
+          <div className="flex justify-between font-bold text-lg text-gray-900 pt-2 border-t">
+            <span>Total:</span>
+            <span>₨ {total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex items-center justify-between gap-3">
+          <button
+            onClick={onClearCart}
+            disabled={cart.length === 0}
+            className="border border-gray-300 bg-white px-4 h-10 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Clear Cart
+          </button>
 
           <button
             onClick={onCheckout}

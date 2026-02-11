@@ -8,6 +8,7 @@ const Checkout = () => {
   const [cart, setCart] = useState([]);
   const [lastOrder, setLastOrder] = useState(null);
   const [checkoutMessage, setCheckoutMessage] = useState("");
+  const [discount, setDiscount] = useState(0); // 0, 5, or 10 for percentage
 
   const handleProductScanned = (product) => {
     // Check if product already in cart
@@ -73,6 +74,7 @@ const Checkout = () => {
   const handleClearCart = () => {
     setCart([]);
     setCheckoutMessage("");
+    setDiscount(0);
   };
 
   const handleCheckout = async () => {
@@ -85,7 +87,10 @@ const Checkout = () => {
       .reduce((acc, item) => acc + parseFloat(item.salePrice) * item.quantity, 0)
       .toFixed(2);
     
-    const isRefund = parseFloat(total) < 0;
+    const discountAmount = (parseFloat(total) * discount / 100).toFixed(2);
+    const finalTotal = (parseFloat(total) - parseFloat(discountAmount)).toFixed(2);
+    
+    const isRefund = parseFloat(finalTotal) < 0;
 
     // Only validate stock for positive transactions
     if (!isRefund) {
@@ -100,7 +105,7 @@ const Checkout = () => {
     try {
       const result = await window.api.createOrder({
         items: cart,
-        total: total,
+        total: finalTotal,
       });
 
       if (!result || !result.success) {
@@ -110,13 +115,17 @@ const Checkout = () => {
 
       setLastOrder({
         items: cart,
-        total: total,
+        total: finalTotal,
+        originalTotal: total,
+        discount: discount,
+        discountAmount: discountAmount,
         date: new Date().toLocaleString(),
         isRefund: isRefund,
       });
 
       setCheckoutMessage(isRefund ? "✓ Refund processed!" : "✓ Order completed successfully!");
       setCart([]);
+      setDiscount(0);
 
       setTimeout(() => setCheckoutMessage(""), 3000);
     } catch (err) {
@@ -135,12 +144,14 @@ const Checkout = () => {
           onRemoveItem={handleRemoveItem}
           onClearCart={handleClearCart}
           onCheckout={handleCheckout}
+          discount={discount}
+          onDiscountChange={setDiscount}
         />
       </div>
 
       {/* Right Column */}
       <div className="space-y-6">
-        <ReceiptCard cart={cart} lastOrder={lastOrder} />
+        <ReceiptCard cart={cart} lastOrder={lastOrder} discount={discount} />
         {checkoutMessage && (
           <div
             className={`p-4 rounded-lg border ${
