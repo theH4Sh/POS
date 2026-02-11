@@ -180,6 +180,19 @@ ipcMain.handle("order:create", (_, data) => {
       throw new Error("Invalid data: items and total required");
     }
 
+    // Validate stock for each item before creating the order
+    for (const item of data.items) {
+      if (!item.id || !item.quantity) {
+        return { success: false, message: `Invalid item data for ${item.name || item.id}` };
+      }
+
+      const prod = db.prepare(`SELECT quantity, name FROM products WHERE id = ?`).get(item.id);
+      const available = prod ? Number(prod.quantity) : 0;
+      if (available < item.quantity) {
+        return { success: false, message: `Insufficient stock for ${prod?.name || item.name || item.id}: requested ${item.quantity}, available ${available}` };
+      }
+    }
+
     // Insert order
     const orderResult = db.prepare(`
       INSERT INTO orders (items, total, createdAt)
@@ -188,16 +201,15 @@ ipcMain.handle("order:create", (_, data) => {
 
     // Update stock for each item
     data.items.forEach((item) => {
-      if (!item.id || !item.quantity) {
-        console.warn("Invalid item data:", item);
-        return;
+      try {
+        db.prepare(`
+          UPDATE products 
+          SET quantity = quantity - ? 
+          WHERE id = ?
+        `).run(item.quantity, item.id);
+      } catch (err) {
+        console.error("Error updating stock for item:", item, err);
       }
-
-      db.prepare(`
-        UPDATE products 
-        SET quantity = quantity - ? 
-        WHERE id = ?
-      `).run(item.quantity, item.id);
     });
 
     return { success: true, orderId: orderResult.lastInsertRowid };

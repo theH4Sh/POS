@@ -1,7 +1,26 @@
 import { ShoppingCart, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const CartItemsCard = ({ cart, onUpdateQuantity, onRemoveItem, onClearCart, onCheckout }) => {
   const total = cart.reduce((acc, item) => acc + (parseFloat(item.salePrice) * item.quantity), 0);
+  const [localQty, setLocalQty] = useState({});
+
+  useEffect(() => {
+    // sync local inputs with cart quantities for NEW items only
+    setLocalQty((prev) => {
+      const next = { ...prev };
+      cart.forEach((it) => {
+        if (next[it.id] === undefined) {
+          next[it.id] = it.quantity;
+        }
+      });
+      // remove keys for items no longer in cart
+      Object.keys(next).forEach((k) => {
+        if (!cart.find((c) => String(c.id) === String(k))) delete next[k];
+      });
+      return next;
+    });
+  }, [cart]);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white shadow-md">
@@ -34,23 +53,63 @@ const CartItemsCard = ({ cart, onUpdateQuantity, onRemoveItem, onClearCart, onCh
                     <div>
                       {item.name}
                       <div className="text-xs text-gray-400">{item.barcode || "No barcode"}</div>
+                      <div className="text-xs text-gray-400">In stock: {item.stock ?? (item.quantity ?? 0)}</div>
                     </div>
                   </td>
                   <td className="p-4 text-right">${parseFloat(item.salePrice).toFixed(2)}</td>
                   <td className="p-4">
                     <div className="flex items-center justify-center">
                       <button
-                        onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                        onClick={() => {
+                          const newQty = Math.max(1, item.quantity - 1);
+                          setLocalQty((s) => ({ ...s, [item.id]: newQty }));
+                          onUpdateQuantity(item.id, newQty);
+                        }}
                         className="border border-gray-300 bg-white h-8 w-8 rounded-r-none hover:bg-gray-100"
+                        disabled={item.quantity <= 1}
                       >
                         -
                       </button>
-                      <div className="h-8 px-3 flex items-center justify-center border-y border-gray-300 min-w-12">
-                        {item.quantity}
-                      </div>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        max={item.stock ?? undefined}
+                        value={localQty[item.id] ?? item.quantity}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          // allow empty while typing
+                          setLocalQty((s) => ({ ...s, [item.id]: raw }));
+                        }}
+                        onBlur={(e) => {
+                          const v = parseInt(e.target.value, 10);
+                          const min = 1;
+                          const max = item.stock ?? Infinity;
+                          const clamped = Number.isNaN(v) ? item.quantity : Math.max(min, Math.min(max, v));
+                          setLocalQty((s) => ({ ...s, [item.id]: clamped }));
+                          onUpdateQuantity(item.id, clamped);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                        className={`h-8 px-3 text-center border-y min-w-20 outline-none ${
+                          Number(localQty[item.id]) > (item.stock ?? Infinity) ? "border-red-400" : "border-gray-300"
+                        }`}
+                      />
+
+                      {Number(localQty[item.id]) > (item.stock ?? Infinity) && (
+                        <div className="text-xs text-red-600 ml-2">Only {item.stock} available</div>
+                      )}
                       <button
-                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => {
+                          const newQty = item.quantity + 1;
+                          setLocalQty((s) => ({ ...s, [item.id]: newQty }));
+                          onUpdateQuantity(item.id, newQty);
+                        }}
                         className="border border-gray-300 bg-white h-8 w-8 rounded-l-none hover:bg-gray-100"
+                        disabled={item.stock != null && item.quantity >= item.stock}
                       >
                         +
                       </button>

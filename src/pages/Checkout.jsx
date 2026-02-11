@@ -14,7 +14,13 @@ const Checkout = () => {
     const existingItem = cart.find((item) => item.id === product.id);
 
     if (existingItem) {
-      // Update quantity
+      // Prevent exceeding available stock
+      if (existingItem.quantity + 1 > existingItem.stock) {
+        setCheckoutMessage(`✗ Only ${existingItem.stock} available for ${existingItem.name}`);
+        return;
+      }
+
+      // Update cart quantity
       setCart(
         cart.map((item) =>
           item.id === product.id
@@ -23,8 +29,15 @@ const Checkout = () => {
         )
       );
     } else {
-      // Add new item to cart
-      setCart([...cart, { ...product, quantity: 1 }]);
+      // If product has no stock or stock is zero
+      const available = Number.isFinite(product.quantity) ? product.quantity : 0;
+      if (available <= 0) {
+        setCheckoutMessage(`✗ ${product.name} is out of stock`);
+        return;
+      }
+
+      // Add new item to cart and preserve available stock as `stock`
+      setCart([...cart, { ...product, stock: available, quantity: 1 }]);
     }
     setCheckoutMessage("");
   };
@@ -34,11 +47,20 @@ const Checkout = () => {
       handleRemoveItem(productId);
       return;
     }
+    const item = cart.find((c) => c.id === productId);
+    if (!item) return;
+
+    if (newQuantity > (item.stock ?? 0)) {
+      setCheckoutMessage(`✗ Only ${item.stock} available for ${item.name}`);
+      return;
+    }
+
     setCart(
       cart.map((item) =>
         item.id === productId ? { ...item, quantity: newQuantity } : item
       )
     );
+    setCheckoutMessage("");
   };
 
   const handleRemoveItem = (productId) => {
@@ -56,15 +78,28 @@ const Checkout = () => {
       return;
     }
 
+    // Final validation: ensure no cart item exceeds stock
+    for (const item of cart) {
+      if (item.quantity > (item.stock ?? 0)) {
+        setCheckoutMessage(`✗ Cannot checkout ${item.quantity} of ${item.name}. Only ${item.stock} available.`);
+        return;
+      }
+    }
+
     try {
       const total = cart
         .reduce((acc, item) => acc + parseFloat(item.salePrice) * item.quantity, 0)
         .toFixed(2);
 
-      await window.api.createOrder({
+      const result = await window.api.createOrder({
         items: cart,
         total: total,
       });
+
+      if (!result || !result.success) {
+        setCheckoutMessage(`✗ ${result?.message || 'Order failed'}`);
+        return;
+      }
 
       setLastOrder({
         items: cart,
