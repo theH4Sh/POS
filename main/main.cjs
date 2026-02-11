@@ -119,20 +119,31 @@ ipcMain.handle("medicine:list", () => {
 ipcMain.handle("medicine:search", (_, query) => {
   try {
     if (!query || query.trim() === "") {
-      console.log("Empty query provided");
-      return null;
+      return [];
     }
-    
-    console.log("Searching for:", query);
-    
-    const result = db.prepare(`
-      SELECT * FROM products 
-      WHERE name LIKE ? OR barcode LIKE ?
-      LIMIT 1
-    `).get(`%${query}%`, `%${query}%`);
-    
-    console.log("Search result:", result);
-    return result || null;
+
+    query = query.trim();
+
+    // If query is only numbers → treat as barcode (exact match)
+    const isBarcode = /^[0-9]+$/.test(query);
+
+    let results;
+
+    if (isBarcode) {
+      results = db.prepare(`
+        SELECT * FROM products 
+        WHERE barcode = ?
+      `).all(query);
+    } else {
+      results = db.prepare(`
+        SELECT * FROM products 
+        WHERE name LIKE ?
+        ORDER BY name ASC
+        LIMIT 10
+      `).all(`%${query}%`);
+    }
+
+    return results || [];
   } catch (err) {
     console.error("Error searching product:", err);
     throw err;
