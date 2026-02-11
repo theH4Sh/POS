@@ -36,6 +36,18 @@ const Inventory = () => {
       (p.barcode && p.barcode.includes(search))
   );
 
+  const handleDelete = async (product) => {
+    if (confirm(`Are you sure you want to delete "${product.name}"? This action cannot be undone.`)) {
+      try {
+        await window.api.deleteMedicine(product.id);
+        load(); // Reload the list
+      } catch (err) {
+        console.error("Failed to delete product:", err);
+        alert("Failed to delete product");
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-7xl mx-auto">
@@ -47,6 +59,7 @@ const Inventory = () => {
             <InventoryTable
               products={filteredProducts}
               onEditProduct={setEditingProduct}
+              onDeleteProduct={handleDelete}
               canEdit={isAdmin}
             />
           </div>

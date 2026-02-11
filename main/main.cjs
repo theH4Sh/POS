@@ -201,6 +201,24 @@ ipcMain.handle("medicine:update", (_, data) => {
   }
 });
 
+// Delete product (admin only)
+ipcMain.handle("medicine:delete", (_, id) => {
+  try {
+    if (!currentUser || currentUser.role !== "admin") {
+      throw new Error("Unauthorized - admin only");
+    }
+    if (!id) {
+      throw new Error("Invalid data: id required");
+    }
+
+    db.prepare("DELETE FROM products WHERE id = ?").run(id);
+    return true;
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    throw err;
+  }
+});
+
 // Get low stock alerts
 ipcMain.handle("medicine:lowStock", () => {
   try {
@@ -209,7 +227,7 @@ ipcMain.handle("medicine:lowStock", () => {
       WHERE quantity < 20 
       ORDER BY quantity ASC
     `).all();
-    
+
     return result || [];
   } catch (err) {
     console.error("Error getting low stock:", err);
@@ -272,7 +290,7 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
   try {
     const now = new Date();
     let startDate, endDate;
-    
+
     // Handle both string period and object with {period, year}
     let period = typeof params === "string" ? params : params.period;
     const customYear = typeof params === "object" ? params.year : null;
@@ -301,7 +319,7 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
 
     // Get orders within date range
     let orders = db.prepare(`SELECT * FROM orders`).all();
-    
+
     if (period !== "overall") {
       orders = orders.filter((order) => {
         const orderDate = new Date(order.createdAt);

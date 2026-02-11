@@ -1,6 +1,6 @@
-import { SquarePen, TriangleAlert } from "lucide-react";
+import { SquarePen, TriangleAlert, Trash2 } from "lucide-react";
 
-export default function InventoryTable({ products, onEditProduct, canEdit = false }) {
+export default function InventoryTable({ products, onEditProduct, onDeleteProduct, canEdit = false }) {
   return (
     <div className="border border-gray-200 rounded-lg overflow-auto">
       <table className="w-full text-sm">
@@ -32,13 +32,12 @@ export default function InventoryTable({ products, onEditProduct, canEdit = fals
                 <td className="p-4 text-gray-900 font-semibold">{p.stock}</td>
                 <td className="p-4">
                   <div
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold flex items-center w-fit ${
-                      p.status === "In Stock"
-                        ? "border border-green-300 bg-green-50 text-green-700"
-                        : p.status === "Low Stock"
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold flex items-center w-fit ${p.status === "In Stock"
+                      ? "border border-green-300 bg-green-50 text-green-700"
+                      : p.status === "Low Stock"
                         ? "border border-yellow-300 bg-yellow-50 text-yellow-700"
                         : "border border-red-300 bg-red-50 text-red-700"
-                    }`}
+                      }`}
                   >
                     {p.status !== "In Stock" && p.status !== "Low Stock" && (
                       <TriangleAlert className="h-3.5 w-3.5 mr-1" />
@@ -48,12 +47,22 @@ export default function InventoryTable({ products, onEditProduct, canEdit = fals
                 </td>
                 <td className="p-4 text-right">
                   {canEdit && (
-                    <button
-                      onClick={() => onEditProduct(p)}
-                      className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors"
-                    >
-                      <SquarePen className="h-4 w-4" /> Edit
-                    </button>
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        onClick={() => onEditProduct(p)}
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+                        title="Edit Product"
+                      >
+                        <SquarePen className="h-4 w-4" /> Edit
+                      </button>
+                      <button
+                        onClick={() => onDeleteProduct(p)}
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
+                        title="Delete Product"
+                      >
+                        <Trash2 className="h-4 w-4" /> Delete
+                      </button>
+                    </div>
                   )}
                 </td>
               </tr>
