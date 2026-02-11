@@ -34,6 +34,7 @@ const ReceiptCard = ({ cart, lastOrder }) => {
           {/* Header */}
           <div className="text-center mb-4">
             <div className="text-base font-bold">PHARMACY POS</div>
+            {displayOrder.isRefund && <div className="text-sm font-bold text-red-600">*** REFUND ***</div>}
             <div>{displayOrder.date}</div>
           </div>
 
@@ -70,8 +71,8 @@ const ReceiptCard = ({ cart, lastOrder }) => {
           <div className="border-t border-dashed border-black my-3"></div>
 
           {/* Total */}
-          <div className="receipt-item flex justify-between font-bold text-sm">
-            <span>TOTAL</span>
+          <div className={`receipt-item flex justify-between font-bold text-sm ${displayOrder.isRefund ? 'text-red-600' : ''}`}>
+            <span>{displayOrder.isRefund ? 'REFUND' : 'TOTAL'}</span>
             <span>{displayOrder.total}</span>
           </div>
 

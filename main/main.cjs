@@ -191,16 +191,20 @@ ipcMain.handle("order:create", (_, data) => {
       throw new Error("Invalid data: items and total required");
     }
 
-    // Validate stock for each item before creating the order
-    for (const item of data.items) {
-      if (!item.id || !item.quantity) {
-        return { success: false, message: `Invalid item data for ${item.name || item.id}` };
-      }
+    const isRefund = parseFloat(data.total) < 0;
 
-      const prod = db.prepare(`SELECT quantity, name FROM products WHERE id = ?`).get(item.id);
-      const available = prod ? Number(prod.quantity) : 0;
-      if (available < item.quantity) {
-        return { success: false, message: `Insufficient stock for ${prod?.name || item.name || item.id}: requested ${item.quantity}, available ${available}` };
+    // Validate stock only for positive transactions
+    if (!isRefund) {
+      for (const item of data.items) {
+        if (!item.id || !item.quantity) {
+          return { success: false, message: `Invalid item data for ${item.name || item.id}` };
+        }
+
+        const prod = db.prepare(`SELECT quantity, name FROM products WHERE id = ?`).get(item.id);
+        const available = prod ? Number(prod.quantity) : 0;
+        if (available < item.quantity) {
+          return { success: false, message: `Insufficient stock for ${prod?.name || item.name || item.id}: requested ${item.quantity}, available ${available}` };
+        }
       }
     }
 
@@ -210,7 +214,7 @@ ipcMain.handle("order:create", (_, data) => {
       VALUES (?, ?, ?)
     `).run(JSON.stringify(data.items), data.total.toString(), new Date().toISOString());
 
-    // Update stock for each item
+    // Update stock for each item (negative quantities add stock back for refunds)
     data.items.forEach((item) => {
       try {
         db.prepare(`

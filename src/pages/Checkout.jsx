@@ -43,16 +43,19 @@ const Checkout = () => {
   };
 
   const handleUpdateQuantity = (productId, newQuantity) => {
-    if (newQuantity <= 0) {
-      handleRemoveItem(productId);
-      return;
-    }
     const item = cart.find((c) => c.id === productId);
     if (!item) return;
 
-    if (newQuantity > (item.stock ?? 0)) {
+    // Allow negative quantities for refunds, but don't exceed stock in positive direction
+    if (newQuantity > 0 && newQuantity > (item.stock ?? 0)) {
       setCheckoutMessage(`✗ Only ${item.stock} available for ${item.name}`);
       return;
+    }
+
+    // Only remove if explicitly set to 0 and not trying to refund
+    if (newQuantity === 0 && item.quantity > 0) {
+      // Allow removing by trash icon, but clicking minus from 1 should go to 0, then -1, -2...
+      // So we update, don't remove automatically
     }
 
     setCart(
@@ -78,19 +81,23 @@ const Checkout = () => {
       return;
     }
 
-    // Final validation: ensure no cart item exceeds stock
-    for (const item of cart) {
-      if (item.quantity > (item.stock ?? 0)) {
-        setCheckoutMessage(`✗ Cannot checkout ${item.quantity} of ${item.name}. Only ${item.stock} available.`);
-        return;
+    const total = cart
+      .reduce((acc, item) => acc + parseFloat(item.salePrice) * item.quantity, 0)
+      .toFixed(2);
+    
+    const isRefund = parseFloat(total) < 0;
+
+    // Only validate stock for positive transactions
+    if (!isRefund) {
+      for (const item of cart) {
+        if (item.quantity > (item.stock ?? 0)) {
+          setCheckoutMessage(`✗ Cannot checkout ${item.quantity} of ${item.name}. Only ${item.stock} available.`);
+          return;
+        }
       }
     }
 
     try {
-      const total = cart
-        .reduce((acc, item) => acc + parseFloat(item.salePrice) * item.quantity, 0)
-        .toFixed(2);
-
       const result = await window.api.createOrder({
         items: cart,
         total: total,
@@ -105,9 +112,10 @@ const Checkout = () => {
         items: cart,
         total: total,
         date: new Date().toLocaleString(),
+        isRefund: isRefund,
       });
 
-      setCheckoutMessage("✓ Order completed successfully!");
+      setCheckoutMessage(isRefund ? "✓ Refund processed!" : "✓ Order completed successfully!");
       setCart([]);
 
       setTimeout(() => setCheckoutMessage(""), 3000);

@@ -76,11 +76,9 @@ const CartItemsCard = ({
                         {/* Minus */}
                         <button
                           onClick={() => {
-                            const newQty = Math.max(1, item.quantity - 1);
-                            onUpdateQuantity(item.id, newQty);
+                            onUpdateQuantity(item.id, item.quantity - 1);
                           }}
-                          disabled={item.quantity <= 1}
-                          className="w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-gray-100"
                         >
                           −
                         </button>
@@ -88,17 +86,10 @@ const CartItemsCard = ({
                         {/* Quantity */}
                         <input
                           type="number"
-                          min={1}
-                          max={item.stock ?? undefined}
                           value={item.quantity}
                           onChange={(e) => {
                             let val = parseInt(e.target.value, 10);
                             if (isNaN(val)) return;
-
-                            const min = 1;
-                            const max = item.stock ?? Infinity;
-
-                            val = Math.max(min, Math.min(max, val));
                             onUpdateQuantity(item.id, val);
                           }}
                           className="w-14 h-9 text-center border-x border-gray-200 outline-none focus:bg-blue-50"
@@ -107,29 +98,25 @@ const CartItemsCard = ({
                         {/* Plus */}
                         <button
                           onClick={() => {
-                            if (
-                              item.stock != null &&
-                              item.quantity >= item.stock
-                            )
-                              return;
-
                             onUpdateQuantity(
                               item.id,
                               item.quantity + 1
                             );
                           }}
-                          disabled={
-                            item.stock != null &&
-                            item.quantity >= item.stock
-                          }
-                          className="w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-gray-100"
                         >
                           +
                         </button>
                       </div>
 
                       {/* Stock Warning */}
+                      {item.quantity < 0 && (
+                          <span className="text-xs text-red-500">
+                            Refund: {Math.abs(item.quantity)}
+                          </span>
+                        )}
                       {item.stock != null &&
+                        item.quantity > 0 &&
                         item.quantity >= item.stock && (
                           <span className="text-xs text-red-500">
                             Max available reached
