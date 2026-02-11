@@ -1,10 +1,12 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { ShoppingCart, ListFilter, TrendingUp, LogOut, Lock } from "lucide-react";
+import { ShoppingCart, ListFilter, TrendingUp, LogOut, Lock, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import ProfileModal from "./ProfileModal";
 
 export const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const handleLogout = async () => {
     await window.api.logout();
@@ -43,10 +45,9 @@ export const Navbar = ({ user, onLogout }) => {
                 end
                 role="tab"
                 className={({ isActive }) =>
-                  `${baseLink} ${
-                    isActive
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-105"
-                      : "text-gray-600 hover:text-blue-600 hover:bg-white"
+                  `${baseLink} ${isActive
+                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-105"
+                    : "text-gray-600 hover:text-blue-600 hover:bg-white"
                   }`
                 }
               >
@@ -54,37 +55,35 @@ export const Navbar = ({ user, onLogout }) => {
                 <span>Checkout</span>
               </NavLink>
 
-            <NavLink
-              to="/manage-inventory"
-              role="tab"
-              className={({ isActive }) =>
-                `${baseLink} ${
-                  isActive
-                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-105"
-                    : "text-gray-600 hover:text-blue-600 hover:bg-white"
-                }`
-              }
-            >
-              <ListFilter className="h-4.5 w-4.5" />
-              <span>Manage Inventory</span>
-            </NavLink>
-
-            {user?.role === "admin" && (
               <NavLink
-                to="/dashboard"
+                to="/manage-inventory"
                 role="tab"
                 className={({ isActive }) =>
-                  `${baseLink} ${
-                    isActive
-                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-105"
-                      : "text-gray-600 hover:text-blue-600 hover:bg-white"
+                  `${baseLink} ${isActive
+                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-105"
+                    : "text-gray-600 hover:text-blue-600 hover:bg-white"
                   }`
                 }
               >
-                <TrendingUp className="h-4.5 w-4.5" />
-                <span>Analytics</span>
+                <ListFilter className="h-4.5 w-4.5" />
+                <span>Manage Inventory</span>
               </NavLink>
-            )}
+
+              {user?.role === "admin" && (
+                <NavLink
+                  to="/dashboard"
+                  role="tab"
+                  className={({ isActive }) =>
+                    `${baseLink} ${isActive
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-105"
+                      : "text-gray-600 hover:text-blue-600 hover:bg-white"
+                    }`
+                  }
+                >
+                  <TrendingUp className="h-4.5 w-4.5" />
+                  <span>Analytics</span>
+                </NavLink>
+              )}
             </div>
 
             {/* User Menu */}
@@ -124,6 +123,17 @@ export const Navbar = ({ user, onLogout }) => {
 
                   <button
                     onClick={() => {
+                      setShowProfileModal(true);
+                      setShowDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-3 hover:bg-blue-50 text-gray-700 font-medium flex items-center gap-2 transition-all"
+                  >
+                    <User className="h-4 w-4 text-blue-600" />
+                    Profile
+                  </button>
+
+                  <button
+                    onClick={() => {
                       handleLogout();
                       setShowDropdown(false);
                     }}
@@ -138,6 +148,20 @@ export const Navbar = ({ user, onLogout }) => {
           </div>
         </div>
       </div>
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        user={user}
+        onUpdateSuccess={() => {
+          // Optional: trigger a re-fetch of user data if needed,
+          // although the modal handles the update.
+          // We could force a logout here if the password changed, or just let them stay logged in.
+          // For now, let's keep them logged in but maybe refresh user state?
+          // Since app state is lifted, we might need a way to refresh 'user' in App.jsx.
+          // But valid session is enough.
+          window.location.reload(); // Simple way to refresh app state
+        }}
+      />
     </nav>
   );
 };

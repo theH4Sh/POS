@@ -50,6 +50,51 @@ ipcMain.handle("auth:getCurrentUser", () => {
   return currentUser;
 });
 
+// Update user profile
+ipcMain.handle("auth:updateProfile", (_, { currentPassword, newUsername, newPassword }) => {
+  try {
+    if (!currentUser) {
+      return { success: false, message: "Not logged in" };
+    }
+
+    // Verify current password
+    const user = db.prepare(`SELECT * FROM users WHERE id = ? AND password = ?`).get(currentUser.id, currentPassword);
+    if (!user) {
+      return { success: false, message: "Incorrect current password" };
+    }
+
+    // Update fields
+    const updates = [];
+    const params = [];
+
+    if (newUsername) {
+      // Check if username is taken by another user
+      const exists = db.prepare(`SELECT * FROM users WHERE username = ? AND id != ?`).get(newUsername, currentUser.id);
+      if (exists) {
+        return { success: false, message: "Username already taken" };
+      }
+      updates.push("username = ?");
+      params.push(newUsername);
+      currentUser.username = newUsername; // Update session
+    }
+
+    if (newPassword) {
+      updates.push("password = ?");
+      params.push(newPassword);
+    }
+
+    if (updates.length > 0) {
+      params.push(currentUser.id);
+      db.prepare(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`).run(...params);
+    }
+
+    return { success: true, message: "Profile updated successfully", user: currentUser };
+  } catch (err) {
+    console.error("Update profile error:", err);
+    return { success: false, message: "Failed to update profile" };
+  }
+});
+
 // Register cashier (admin only)
 ipcMain.handle("auth:registerCashier", (_, { username, password }) => {
   try {
