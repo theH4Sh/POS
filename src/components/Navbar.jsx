@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { ShoppingCart, Plus, ListFilter, TrendingUp, LogOut, Lock } from "lucide-react";
+import { ShoppingCart, ListFilter, TrendingUp, LogOut, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Navbar = ({ user, onLogout }) => {
@@ -53,21 +53,6 @@ export const Navbar = ({ user, onLogout }) => {
                 <ShoppingCart className="h-4.5 w-4.5" />
                 <span>Checkout</span>
               </NavLink>
-
-            <NavLink
-              to="/add-product"
-              role="tab"
-              className={({ isActive }) =>
-                `${baseLink} ${
-                  isActive
-                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-105"
-                    : "text-gray-600 hover:text-blue-600 hover:bg-white"
-                }`
-              }
-            >
-              <Plus className="h-4.5 w-4.5" />
-              <span>Add Product</span>
-            </NavLink>
 
             <NavLink
               to="/manage-inventory"

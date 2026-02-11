@@ -12,7 +12,6 @@ import Login from "./pages/Login";
 import AdminPanel from "./pages/AdminPanel";
 
 import "./App.css";
-import AddProduct from "./pages/AddProduct";
 import Checkout from "./pages/Checkout";
 import Inventory from "./pages/Inventory";
 import Dashboard from "./pages/Dashboard";
@@ -51,7 +50,6 @@ export default function App() {
         <Route path="/admin" element={<AdminPanel user={user} onLogout={() => setUser(null)} />} />
         <Route path="/" element={<Product user={user} onLogout={() => setUser(null)} />}>
           <Route index element={<Checkout />} />
-          <Route path="add-product" element={<AddProduct />} />
           <Route path="manage-inventory" element={<Inventory />} />
           <Route path="dashboard" element={<Dashboard user={user} />} />
         </Route>
