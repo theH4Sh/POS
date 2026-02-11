@@ -156,14 +156,47 @@ ipcMain.handle("medicine:updateStock", (_, data) => {
     if (!data.id || data.quantity === undefined) {
       throw new Error("Invalid data: id and quantity required");
     }
-    
+
     db.prepare(`
       UPDATE products SET quantity = ? WHERE id = ?
     `).run(data.quantity, data.id);
-    
+
     return true;
   } catch (err) {
     console.error("Error updating stock:", err);
+    throw err;
+  }
+});
+
+// Update product (admin only) – all attributes
+ipcMain.handle("medicine:update", (_, data) => {
+  try {
+    if (!currentUser || currentUser.role !== "admin") {
+      throw new Error("Unauthorized - admin only");
+    }
+    if (!data.id) {
+      throw new Error("Invalid data: id required");
+    }
+
+    db.prepare(`
+      UPDATE products SET
+        name = ?, barcode = ?, category = ?, quantity = ?,
+        purchasePrice = ?, salePrice = ?, description = ?
+      WHERE id = ?
+    `).run(
+      data.name ?? "",
+      data.barcode ?? "",
+      data.category ?? "",
+      data.quantity ?? 0,
+      String(data.purchasePrice ?? "0"),
+      String(data.salePrice ?? "0"),
+      data.description ?? "",
+      data.id
+    );
+
+    return true;
+  } catch (err) {
+    console.error("Error updating product:", err);
     throw err;
   }
 });

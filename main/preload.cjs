@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld("api", {
   listMedicines: () => ipcRenderer.invoke("medicine:list"),
   searchProduct: (query) => ipcRenderer.invoke("medicine:search", query),
   updateStock: (data) => ipcRenderer.invoke("medicine:updateStock", data),
+  updateMedicine: (data) => ipcRenderer.invoke("medicine:update", data),
   createOrder: (data) => ipcRenderer.invoke("order:create", data),
   listLowStockAlerts: () => ipcRenderer.invoke("medicine:lowStock"),
   getDashboardStats: (params) => ipcRenderer.invoke("getDashboardStats", params),

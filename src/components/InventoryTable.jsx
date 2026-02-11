@@ -1,6 +1,6 @@
 import { SquarePen, TriangleAlert } from "lucide-react";
 
-export default function InventoryTable({ products, onEditStock }) {
+export default function InventoryTable({ products, onEditProduct, canEdit = false }) {
   return (
     <div className="border border-gray-200 rounded-lg overflow-auto">
       <table className="w-full text-sm">
@@ -47,12 +47,14 @@ export default function InventoryTable({ products, onEditStock }) {
                   </div>
                 </td>
                 <td className="p-4 text-right">
-                  <button
-                    onClick={() => onEditStock(p.id, p.stock)}
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors"
-                  >
-                    <SquarePen className="h-4 w-4" /> Edit
-                  </button>
+                  {canEdit && (
+                    <button
+                      onClick={() => onEditProduct(p)}
+                      className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+                    >
+                      <SquarePen className="h-4 w-4" /> Edit
+                    </button>
+                  )}
                 </td>
               </tr>
             ))

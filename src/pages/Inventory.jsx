@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import AddProductModal from "../components/AddProductModal";
-import EditStockModal from "../components/EditStockModal";
+import EditProductModal from "../components/EditProductModal";
 import InventoryHeader from "../components/InventoryHeader";
 import InventorySearch from "../components/InventorySearch";
 import InventoryTable from "../components/InventoryTable";
 
 const Inventory = () => {
+  const { user } = useOutletContext();
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
-  const [editingId, setEditingId] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  const isAdmin = user?.role === "admin";
 
   const load = async () => {
     const medicines = await window.api.listMedicines();
@@ -32,16 +36,6 @@ const Inventory = () => {
       (p.barcode && p.barcode.includes(search))
   );
 
-  const editingProduct = editingId
-    ? products.find((p) => p.id === editingId)
-    : null;
-
-  const handleSaveStock = async (productId, quantity) => {
-    await window.api.updateStock({ id: productId, quantity });
-    setEditingId(null);
-    load();
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-7xl mx-auto">
@@ -52,23 +46,19 @@ const Inventory = () => {
             <InventorySearch value={search} onChange={setSearch} />
             <InventoryTable
               products={filteredProducts}
-              onEditStock={(id, stock) => {
-                setEditingId(id);
-              }}
+              onEditProduct={setEditingProduct}
+              canEdit={isAdmin}
             />
           </div>
         </div>
       </div>
 
-      <EditStockModal
-        key={editingId}
-        isOpen={!!editingId}
-        productName={editingProduct?.name}
-        initialQuantity={editingProduct?.stock}
-        onClose={() => setEditingId(null)}
-        onSave={async (quantity) => {
-          if (editingId) await handleSaveStock(editingId, quantity);
-        }}
+      <EditProductModal
+        key={editingProduct?.id}
+        isOpen={!!editingProduct}
+        product={editingProduct}
+        onClose={() => setEditingProduct(null)}
+        onSuccess={load}
       />
 
       <AddProductModal
