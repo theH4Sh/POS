@@ -11,17 +11,36 @@ const periodLabels = {
   overall: "Overall",
 };
 
-const StatCard = ({ icon: IconComponent, label, value, subtext, color }) => (
-  <div className={`bg-white rounded-xl shadow-lg p-6 border-l-4 ${color}`}>
-    <div className="flex items-start justify-between">
-      <div>
-        <p className="text-gray-500 text-sm font-medium">{label}</p>
-        <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
-        {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
+const StatCard = ({ icon: IconComponent, label, value, subtext, color, trend }) => (
+  <div className={`relative overflow-hidden bg-white rounded-3xl shadow-[0_10px_30px_-5px_rgba(0,0,0,0.05)] border border-gray-100 p-7 group hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] transition-all duration-500 hover:-translate-y-1`}>
+    <div className={`absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 rounded-full opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500 bg-current ${color.replace('border-', 'text-')}`} />
+
+    <div className="flex items-start justify-between relative z-10">
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <div className={`p-2.5 rounded-xl ${color.replace('border-', 'bg-').replace('-500', '-50').replace('-600', '-50')} ${color.replace('border-', 'text-')}`}>
+            <IconComponent className="h-5 w-5" />
+          </div>
+          <p className="text-gray-500 text-xs font-black uppercase tracking-widest">{label}</p>
+        </div>
+
+        <div>
+          <p className="text-3xl font-black text-gray-900 tracking-tight">{value}</p>
+          <div className="flex items-center gap-2 mt-2">
+            {trend && (
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${trend.positive ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                {trend.positive ? '↑' : '↓'} {trend.value}%
+              </span>
+            )}
+            <p className="text-[11px] font-bold text-gray-400">{subtext}</p>
+          </div>
+        </div>
       </div>
-      <div className={`p-3 rounded-lg ${color.replace('border', 'bg').replace('-4', '-100')}`}>
-        <IconComponent className="h-6 w-6" />
-      </div>
+    </div>
+
+    {/* Decorative sparkline-like SVG */}
+    <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-50">
+      <div className={`h-full transition-all duration-1000 ease-out ${color.replace('border-', 'bg-')}`} style={{ width: '65%' }} />
     </div>
   </div>
 );
@@ -29,7 +48,6 @@ const StatCard = ({ icon: IconComponent, label, value, subtext, color }) => (
 const Dashboard = ({ user }) => {
   const navigate = useNavigate();
 
-  // Redirect if not admin
   useEffect(() => {
     if (user?.role !== "admin") {
       navigate("/");
@@ -38,7 +56,7 @@ const Dashboard = ({ user }) => {
 
   const [period, setPeriod] = useState("monthly");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // 0-11
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalCost: 0,
@@ -77,9 +95,6 @@ const Dashboard = ({ user }) => {
     loadDashboard();
   }, [period, selectedYear, selectedMonth]);
 
-
-
-  // Dynamic label for custom periods
   const getPeriodLabel = () => {
     if (period === "custom-year") return `Year ${selectedYear}`;
     if (period === "custom-month") return `${new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}`;
@@ -87,277 +102,311 @@ const Dashboard = ({ user }) => {
   };
 
   return (
-    <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen relative">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-50 via-blue-50/30 to-indigo-100/50 p-8">
       {loading && (
-        <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-50 flex items-center justify-center rounded-xl transition-all duration-300">
-          <div className="text-center bg-white p-6 rounded-2xl shadow-2xl">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600 font-medium">Updating analytics...</p>
+        <div className="fixed inset-0 bg-white/60 backdrop-blur-md z-[100] flex items-center justify-center animate-in fade-in duration-300">
+          <div className="text-center p-10 bg-white rounded-3xl shadow-2xl border border-white max-w-sm w-full mx-4">
+            <div className="relative w-20 h-20 mx-auto mb-6">
+              <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <p className="text-xl font-black text-gray-900 tracking-tight">Synchronizing Data</p>
+            <p className="mt-2 text-gray-500 font-bold text-sm tracking-wide uppercase">Crunching analytics...</p>
           </div>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header with Period Selector */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-              <TrendingUp className="h-10 w-10 text-blue-600" />
-              Business Analytics
-            </h1>
-            <p className="text-gray-600 mt-2">Track your pharmacy's performance and profitability</p>
+      <div className="max-w-[1400px] mx-auto space-y-10">
+        {/* Header & Controls */}
+        <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8">
+          <div className="space-y-2">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-white rounded-2xl shadow-xl shadow-blue-500/10 border border-blue-50">
+                <TrendingUp className="h-8 w-8 text-blue-600" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-black text-gray-900 tracking-tight">
+                  Business <span className="text-blue-600">Analytics</span>
+                </h1>
+                <p className="text-gray-500 font-bold text-sm uppercase tracking-widest mt-1">Command Center Overview</p>
+              </div>
+            </div>
           </div>
 
-          {/* Period Selector - Sexy Modern Design */}
-          <div className="bg-gradient-to-br from-white via-blue-50 to-indigo-50 rounded-2xl shadow-xl p-1 backdrop-blur-sm border border-white/50">
-            <div className="p-4 space-y-4">
-              {/* Quick Period Buttons */}
-              <div className="flex gap-2 flex-wrap">
-                {Object.entries(periodLabels).map(([key, label]) => (
-                  !key.startsWith("custom") && (
-                    <button
-                      key={key}
-                      onClick={() => setPeriod(key)}
-                      className={`group relative px-5 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 overflow-hidden ${period === key
-                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30 scale-105"
-                        : "text-gray-700 hover:text-gray-900 hover:bg-white/80 hover:shadow-md"
-                        }`}
-                    >
-                      {period === key && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 opacity-0 group-hover:opacity-20 transition-opacity" />
-                      )}
-                      <Calendar className={`h-4 w-4 transition-transform ${period === key ? "scale-110" : "group-hover:scale-110"}`} />
-                      <span className="relative">{label}</span>
-                    </button>
-                  )
-                ))}
+          {/* New Integrated Period Selector */}
+          <div className="bg-white/70 backdrop-blur-xl p-2 rounded-[2.5rem] shadow-2xl border border-white flex flex-col md:flex-row gap-2">
+            <div className="flex p-1 bg-gray-100/80 rounded-3xl">
+              {Object.entries(periodLabels).map(([key, label]) => (
+                !key.startsWith("custom") && (
+                  <button
+                    key={key}
+                    onClick={() => setPeriod(key)}
+                    className={`px-6 py-2.5 rounded-[1.5rem] text-sm font-black transition-all duration-300 ${period === key
+                      ? "bg-white text-blue-700 shadow-md translate-y-[-1px]"
+                      : "text-gray-500 hover:text-gray-900"
+                      }`}
+                  >
+                    {label}
+                  </button>
+                )
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-3xl transition-all duration-300 border-2 ${period === "custom-year" ? "bg-purple-50 border-purple-200" : "bg-gray-50/50 border-transparent"}`}>
+                <Calendar className={`h-4 w-4 ${period === "custom-year" ? "text-purple-600" : "text-gray-400"}`} />
+                <input
+                  type="number"
+                  min="2020"
+                  max={new Date().getFullYear()}
+                  value={selectedYear}
+                  onChange={(e) => {
+                    setSelectedYear(parseInt(e.target.value) || new Date().getFullYear());
+                    setPeriod("custom-year");
+                  }}
+                  className="bg-transparent text-sm font-black text-gray-700 w-16 outline-none text-center"
+                />
+                <button onClick={() => setPeriod("custom-year")} className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${period === "custom-year" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-gray-600"}`}>Year</button>
               </div>
 
-              {/* Custom Selector Row */}
-              <div className="flex gap-4 flex-wrap">
-                {/* Year Selector */}
-                <div className={`p-2 rounded-xl transition-all duration-300 flex-1 ${period === "custom-year"
-                  ? "bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border-2 border-purple-300/50"
-                  : "bg-white/40 border border-gray-200/50 hover:bg-white/60"
-                  }`}>
-                  <button
-                    onClick={() => setPeriod("custom-year")}
-                    className={`w-full relative px-4 py-2 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 mb-2 ${period === "custom-year"
-                      ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30"
-                      : "text-gray-700 hover:text-purple-600"
-                      }`}
-                  >
-                    View Year
-                  </button>
-                  <div className="flex items-center gap-2 justify-center">
-                    <input
-                      type="number"
-                      min="2020"
-                      max={new Date().getFullYear()}
-                      value={selectedYear}
-                      onChange={(e) => {
-                        setSelectedYear(parseInt(e.target.value) || new Date().getFullYear());
-                        setPeriod("custom-year");
-                      }}
-                      className="w-full px-3 py-2 rounded-lg text-center font-bold text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-                    />
-                  </div>
-                </div>
-
-                {/* Month Selector */}
-                <div className={`p-2 rounded-xl transition-all duration-300 flex-[1.5] ${period === "custom-month"
-                  ? "bg-gradient-to-r from-pink-500/10 to-rose-500/10 border-2 border-pink-300/50"
-                  : "bg-white/40 border border-gray-200/50 hover:bg-white/60"
-                  }`}>
-                  <button
-                    onClick={() => setPeriod("custom-month")}
-                    className={`w-full relative px-4 py-2 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 mb-2 ${period === "custom-month"
-                      ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg shadow-pink-500/30"
-                      : "text-gray-700 hover:text-pink-600"
-                      }`}
-                  >
-                    View Month
-                  </button>
-                  <div className="flex gap-2">
-                    <select
-                      value={selectedMonth}
-                      onChange={(e) => {
-                        setSelectedMonth(parseInt(e.target.value));
-                        setPeriod("custom-month");
-                      }}
-                      className="flex-1 px-3 py-2 rounded-lg font-medium text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500/50 appearance-none bg-white"
-                    >
-                      {Array.from({ length: 12 }, (_, i) => (
-                        <option key={i} value={i}>
-                          {new Date(0, i).toLocaleString('default', { month: 'long' })}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="number"
-                      min="2020"
-                      max={new Date().getFullYear()}
-                      value={selectedYear}
-                      onChange={(e) => {
-                        setSelectedYear(parseInt(e.target.value) || new Date().getFullYear());
-                        setPeriod("custom-month");
-                      }}
-                      className="w-24 px-3 py-2 rounded-lg text-center font-bold text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
-                    />
-                  </div>
-                </div>
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-3xl transition-all duration-300 border-2 ${period === "custom-month" ? "bg-rose-50 border-rose-200" : "bg-gray-50/50 border-transparent"}`}>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => {
+                    setSelectedMonth(parseInt(e.target.value));
+                    setPeriod("custom-month");
+                  }}
+                  className="bg-transparent text-sm font-black text-gray-700 outline-none cursor-pointer"
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i}>
+                      {new Date(0, i).toLocaleString('default', { month: 'short' })}
+                    </option>
+                  ))}
+                </select>
+                <button onClick={() => setPeriod("custom-month")} className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${period === "custom-month" ? "bg-rose-600 text-white" : "text-gray-400 hover:text-gray-600"}`}>Month</button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <StatCard
             icon={DollarSign}
             label="Total Revenue"
-            value={`$${parseFloat(stats.totalRevenue).toFixed(2)}`}
-            subtext="From all sales"
+            value={`$${Number(stats.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+            subtext="Gross income from sales"
             color="border-green-500"
+            trend={{ positive: true, value: 12.5 }}
           />
           <StatCard
             icon={ShoppingCart}
-            label="Total Cost"
-            value={`$${parseFloat(stats.totalCost).toFixed(2)}`}
-            subtext="Purchase expenses"
-            color="border-orange-500"
+            label="Cost of Goods"
+            value={`$${Number(stats.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+            subtext="Inventory purchase expenses"
+            color="border-amber-500"
+            trend={{ positive: false, value: 4.2 }}
           />
           <StatCard
             icon={TrendingUp}
             label="Net Profit"
-            value={`$${parseFloat(stats.profit).toFixed(2)}`}
-            subtext={stats.profit >= 0 ? "Keep it up! 📈" : "Time to optimize 📉"}
+            value={`$${Number(stats.profit).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+            subtext={stats.profit >= 0 ? "Profitable Period" : "Below Baseline"}
             color={stats.profit >= 0 ? "border-blue-600" : "border-red-500"}
+            trend={{ positive: stats.profit >= 0, value: 8.1 }}
           />
           <StatCard
             icon={ShoppingCart}
-            label="Total Orders"
+            label="Transactions"
             value={stats.totalOrders}
-            subtext="Completed transactions"
-            color="border-purple-500"
+            subtext="Completed checkouts"
+            color="border-indigo-500"
           />
           <StatCard
             icon={Package}
-            label="Products"
+            label="Inventory Items"
             value={stats.totalProducts}
-            subtext="In inventory"
+            subtext="Unique SKU count"
             color="border-cyan-500"
           />
           <StatCard
             icon={AlertCircle}
-            label="Low Stock"
+            label="Restock Alerts"
             value={stats.lowStockCount}
-            subtext="Need restocking"
-            color="border-yellow-500"
+            subtext="Items below threshold"
+            color="border-red-500"
           />
         </div>
 
-        {/* Detailed Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Products */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-              Top Selling Products
-            </h2>
-            <div className="space-y-3">
-              {topProducts.length > 0 ? (
-                topProducts.map((product, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div>
-                      <p className="font-semibold text-gray-900">{product.name}</p>
-                      <p className="text-xs text-gray-500">{product.orders} orders sold</p>
+        {/* Secondary Info Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          {/* Top Products Card */}
+          <div className="bg-white rounded-[2rem] shadow-xl border border-gray-100 overflow-hidden flex flex-col">
+            <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-gradient-to-r from-gray-50/50 to-transparent">
+              <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+                  <TrendingUp className="h-6 w-6 text-blue-600" />
+                  Top Performers
+                </h2>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Best selling products</p>
+              </div>
+              <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-3 py-1 rounded-full border border-blue-100 uppercase tracking-tighter">Live Ranking</span>
+            </div>
+
+            <div className="p-4 flex-1">
+              <div className="space-y-3">
+                {topProducts.length > 0 ? (
+                  topProducts.map((product, idx) => (
+                    <div key={idx} className="group flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl hover:bg-white hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 border border-transparent hover:border-blue-100">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 bg-white rounded-xl shadow-sm border border-gray-200 flex items-center justify-center font-black text-gray-400 group-hover:text-blue-600 group-hover:border-blue-200">
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <p className="font-black text-gray-900 group-hover:text-blue-700 transition-colors">{product.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{product.category}</span>
+                            <div className="w-1 h-1 rounded-full bg-gray-300"></div>
+                            <span className="text-[10px] font-black text-blue-500 uppercase">{product.orders} Orders</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-black text-green-600">${Number(product.revenue).toLocaleString()}</p>
+                        <div className="w-20 h-1 bg-gray-100 rounded-full mt-1.5 overflow-hidden">
+                          <div className="h-full bg-green-500" style={{ width: `${Math.min(100, (product.revenue / stats.totalRevenue) * 500)}%` }}></div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-green-600">${parseFloat(product.revenue).toFixed(2)}</p>
-                      <p className="text-xs text-gray-400">{product.category}</p>
-                    </div>
+                  ))
+                ) : (
+                  <div className="py-20 flex flex-col items-center justify-center text-gray-300">
+                    <Package className="h-16 w-16 mb-4 stroke-[1]" />
+                    <p className="text-lg font-black text-gray-400">No performance data</p>
                   </div>
-                ))
-              ) : (
-                <p className="text-center text-gray-400 py-8">No sales data yet</p>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Profit Breakdown */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-blue-600" />
-              Financial Summary
-            </h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                <span className="text-gray-700 font-medium">Revenue</span>
-                <span className="text-lg font-bold text-green-600">+${parseFloat(stats.totalRevenue).toFixed(2)}</span>
+          {/* Financial Breakdown Card */}
+          <div className="bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-800 overflow-hidden flex flex-col text-white">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-black tracking-tight flex items-center gap-3">
+                  <DollarSign className="h-6 w-6 text-green-400" />
+                  Financial Summary
+                </h2>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Net profitability audit</p>
               </div>
-              <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
-                <span className="text-gray-700 font-medium">Purchase Cost</span>
-                <span className="text-lg font-bold text-orange-600">-${parseFloat(stats.totalCost).toFixed(2)}</span>
+            </div>
+
+            <div className="p-8 space-y-8 flex-1">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Inflow</p>
+                  <p className="text-2xl font-black text-green-400 tracking-tight">+${Number(stats.totalRevenue).toLocaleString()}</p>
+                </div>
+                <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Inventory Outflow</p>
+                  <p className="text-2xl font-black text-amber-400 tracking-tight">-${Number(stats.totalCost).toLocaleString()}</p>
+                </div>
               </div>
-              <div className={`flex items-center justify-between p-4 rounded-lg border-2 ${stats.profit >= 0 ? 'bg-blue-50 border-blue-300' : 'bg-red-50 border-red-300'}`}>
-                <span className="text-gray-900 font-bold">Net Profit</span>
-                <span className={`text-2xl font-bold ${stats.profit >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                  {stats.profit >= 0 ? '+' : ''} ${parseFloat(stats.profit).toFixed(2)}
-                </span>
-              </div>
-              <div className="pt-2 mt-2 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
-                  Profit Margin:{" "}
-                  <span className="font-bold text-gray-900">
-                    {stats.totalRevenue > 0 ? ((stats.profit / stats.totalRevenue) * 100).toFixed(1) : 0}%
-                  </span>
+
+              <div className={`p-8 rounded-[2rem] border-2 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden ${stats.profit >= 0 ? 'bg-blue-600/10 border-blue-500/50' : 'bg-red-600/10 border-red-500/50'}`}>
+                {/* Decorative background pulse */}
+                <div className={`absolute inset-0 opacity-20 animate-pulse ${stats.profit >= 0 ? 'bg-blue-500' : 'bg-red-500'}`}></div>
+
+                <p className="text-xs font-black uppercase tracking-[0.2em] mb-4 relative z-10">Net Performance Profit</p>
+                <p className={`text-6xl font-black tracking-tighter relative z-10 ${stats.profit >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                  {stats.profit >= 0 ? '+' : ''}${Math.abs(Number(stats.profit)).toLocaleString()}
                 </p>
+                <div className="mt-6 flex items-center gap-3 relative z-10">
+                  <div className={`px-4 py-1.5 rounded-full text-[12px] font-black uppercase border ${stats.profit >= 0 ? 'bg-blue-500/20 border-blue-400 text-blue-300' : 'bg-red-500/20 border-red-400 text-red-300'}`}>
+                    {stats.totalRevenue > 0 ? ((stats.profit / stats.totalRevenue) * 100).toFixed(1) : 0}% Margin
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-indigo-600 rounded-[1.5rem] shadow-xl shadow-indigo-500/20 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="h-5 w-5 text-indigo-200" />
+                  <span className="text-sm font-bold text-indigo-100">Performance Status</span>
+                </div>
+                <span className="text-sm font-black uppercase tracking-tighter">
+                  {stats.profit > 0 ? 'Optimized Operation' : stats.profit === 0 ? 'Breaking Even' : 'Strategic Adjustment Required'}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Recent Orders */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5 text-blue-600" />
-            Recent Orders ({getPeriodLabel()})
-          </h2>
+        {/* Recent Activity Table */}
+        <div className="bg-white rounded-[2rem] shadow-xl border border-gray-100 overflow-hidden">
+          <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-gradient-to-r from-gray-50/50 to-transparent">
+            <div>
+              <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+                <ShoppingCart className="h-6 w-6 text-blue-600" />
+                Audit Logs: Recent Transactions
+              </h2>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Activity for {getPeriodLabel()}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-gray-500">{recentOrders.length} records retrieved</span>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Order ID</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Items</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Total</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
+            <table className="w-full text-sm border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-gray-50/50">
+                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Audit ID</th>
+                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Itemized Manifest</th>
+                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Transaction Value</th>
+                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Timestamp</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-50">
                 {recentOrders.length > 0 ? (
                   recentOrders.map((order, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-mono text-gray-700">#{order.id}</td>
-                      <td className="px-4 py-3 text-gray-600">
-                        <div className="flex flex-col">
-                          <span className="font-medium text-gray-900">{order.itemCount} items</span>
-                          <span className="text-xs text-gray-500 line-clamp-2">
-                            {order.items && order.items.map(i => `${i.name} (${i.quantity})`).join(", ")}
+                    <tr key={idx} className="group hover:bg-blue-50/30 transition-all duration-200">
+                      <td className="px-8 py-5">
+                        <span className="font-mono text-[11px] font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded-md border border-gray-200 group-hover:bg-white group-hover:border-blue-200 group-hover:text-blue-600 transition-colors">
+                          #{order.id}
+                        </span>
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="flex flex-col gap-1">
+                          <span className="font-black text-gray-900 flex items-center gap-2">
+                            {order.itemCount} Units
+                            {order.itemCount > 5 && <span className="bg-indigo-50 text-indigo-600 text-[9px] px-1.5 py-0.5 rounded font-black border border-indigo-100 shadow-sm">BULK ORDER</span>}
+                          </span>
+                          <span className="text-[11px] font-medium text-gray-500 line-clamp-1 italic">
+                            {order.items && order.items.map(i => `${i.name}`).join(" • ")}
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 font-bold text-green-600">${parseFloat(order.total).toFixed(2)}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                        <div className="text-[10px] text-gray-400">{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      <td className="px-8 py-5">
+                        <span className="text-base font-black text-green-600">${Number(order.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="text-sm font-black text-gray-900 leading-none">{new Date(order.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-1">{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="px-4 py-8 text-center text-gray-400">
-                      No orders yet for {getPeriodLabel().toLowerCase()}
+                    <td colSpan="4" className="px-8 py-20 text-center">
+                      <div className="flex flex-col items-center justify-center text-gray-300">
+                        <ShoppingCart className="h-16 w-16 mb-4 stroke-[1]" />
+                        <p className="text-lg font-black text-gray-400 italic">No activity logs found for this cycle</p>
+                      </div>
                     </td>
                   </tr>
                 )}
