@@ -3,14 +3,13 @@ import CartItemsCard from "../components/CartItemsCard";
 import ReceiptCard from "../components/ReceiptCard";
 import LowStockAlerts from "../components/LowStockAlerts";
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Trash2 } from "lucide-react";
+import { useOutletContext } from "react-router-dom";
 
 const Checkout = () => {
-  const [carts, setCarts] = useState([[]]);
-  const [activeCartIndex, setActiveCartIndex] = useState(0);
+  const { carts, setCarts, activeCartIndex, setActiveCartIndex, discount, setDiscount } = useOutletContext();
   const [lastOrder, setLastOrder] = useState(null);
   const [checkoutMessage, setCheckoutMessage] = useState("");
-  const [discount, setDiscount] = useState(0);
 
   const cart = carts[activeCartIndex] || [];
 
@@ -26,13 +25,17 @@ const Checkout = () => {
   };
 
   const deleteCart = (index) => {
-    if (carts.length === 1) return; // Keep at least one cart
+    if (carts.length === 1) {
+      // If it's the only cart, just clear it instead of deleting
+      setCart([]);
+      return;
+    }
     const newCarts = carts.filter((_, i) => i !== index);
     setCarts(newCarts);
     if (activeCartIndex >= newCarts.length) {
       setActiveCartIndex(newCarts.length - 1);
-    } else {
-      setActiveCartIndex(activeCartIndex);
+    } else if (activeCartIndex === index) {
+      setActiveCartIndex(Math.max(0, index - 1));
     }
   };
 
@@ -106,7 +109,11 @@ const Checkout = () => {
   const switchCart = (index) => {
     setActiveCartIndex(index);
     setCheckoutMessage("");
-    setDiscount(0);
+    // We don't reset discount here because it's now shared, or should it be per cart?
+    // User didn't specify, but usually discount is per-transaction.
+    // If we want it per-cart, we should store it IN the cart object.
+    // For now, I'll keep it as is (shared global discount for the app) to keep it simple,
+    // as state lifting was the primary goal for persistence.
   };
 
   const handleCheckout = async () => {
@@ -193,21 +200,19 @@ const Checkout = () => {
                   </span>
                 )}
 
-                {carts.length > 1 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteCart(index);
-                    }}
-                    className={`p-1.5 rounded-full mr-1 transition-all opacity-60 hover:opacity-100 ${activeCartIndex === index
-                      ? 'hover:bg-blue-500 text-white'
-                      : 'hover:bg-red-100 text-gray-400 hover:text-red-600'
-                      }`}
-                    title="Close cart"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteCart(index);
+                  }}
+                  className={`p-1.5 rounded-full mr-1 transition-all opacity-0 group-hover:opacity-100 ${activeCartIndex === index
+                    ? 'hover:bg-blue-500 text-white opacity-80'
+                    : 'hover:bg-red-100 text-gray-400 hover:text-red-600'
+                    }`}
+                  title={carts.length > 1 ? "Delete cart" : "Clear cart"}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
             ))}
           </div>

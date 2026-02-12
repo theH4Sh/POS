@@ -19,6 +19,9 @@ import Dashboard from "./pages/Dashboard";
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [carts, setCarts] = useState([[]]);
+  const [activeCartIndex, setActiveCartIndex] = useState(0);
+  const [discount, setDiscount] = useState(0);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -48,7 +51,7 @@ export default function App() {
     createRoutesFromElements(
       <Route element={<RootLayout />}>
         <Route path="/admin" element={<AdminPanel user={user} onLogout={() => setUser(null)} />} />
-        <Route path="/" element={<Product user={user} onLogout={() => setUser(null)} />}>
+        <Route path="/" element={<Product user={user} onLogout={() => setUser(null)} cartState={{ carts, setCarts, activeCartIndex, setActiveCartIndex, discount, setDiscount }} />}>
           <Route index element={<Checkout />} />
           <Route path="manage-inventory" element={<Inventory />} />
           <Route path="dashboard" element={<Dashboard user={user} />} />
