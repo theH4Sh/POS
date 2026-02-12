@@ -46,14 +46,14 @@ export default function App() {
 
   const router = createHashRouter(
     createRoutesFromElements(
-      <>
+      <Route element={<RootLayout />}>
         <Route path="/admin" element={<AdminPanel user={user} onLogout={() => setUser(null)} />} />
         <Route path="/" element={<Product user={user} onLogout={() => setUser(null)} />}>
           <Route index element={<Checkout />} />
           <Route path="manage-inventory" element={<Inventory />} />
           <Route path="dashboard" element={<Dashboard user={user} />} />
         </Route>
-      </>
+      </Route>
     )
   );
 
