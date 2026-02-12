@@ -86,19 +86,17 @@ const Dashboard = ({ user }) => {
     return periodLabels[period];
   };
 
-  if (loading) {
-    return (
-      <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading analytics...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen relative">
+      {loading && (
+        <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-50 flex items-center justify-center rounded-xl transition-all duration-300">
+          <div className="text-center bg-white p-6 rounded-2xl shadow-2xl">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600 font-medium">Updating analytics...</p>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header with Period Selector */}
         <div className="flex items-center justify-between flex-wrap gap-4">
