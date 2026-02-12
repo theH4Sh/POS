@@ -362,6 +362,7 @@ const Dashboard = ({ user }) => {
               <thead>
                 <tr className="bg-gray-50/50">
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Audit ID</th>
+                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Operator</th>
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Itemized Manifest</th>
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Amount</th>
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Timestamp</th>
@@ -375,6 +376,19 @@ const Dashboard = ({ user }) => {
                         <span className="font-mono text-[11px] font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded-md border border-gray-200 group-hover:bg-white group-hover:border-blue-200 group-hover:text-blue-600 transition-colors">
                           #{order.id}
                         </span>
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-black text-xs ${order.processorRole === 'admin' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
+                            {order.processedBy[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-black text-gray-900 leading-none">{order.processedBy}</p>
+                            <span className={`text-[9px] font-black uppercase tracking-tighter ${order.processorRole === 'admin' ? 'text-blue-500' : 'text-gray-400'}`}>
+                              {order.processorRole || 'System'}
+                            </span>
+                          </div>
+                        </div>
                       </td>
                       <td className="px-8 py-5">
                         <div className="flex flex-col gap-1">
@@ -402,7 +416,7 @@ const Dashboard = ({ user }) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="px-8 py-20 text-center">
+                    <td colSpan="5" className="px-8 py-20 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-300">
                         <ShoppingCart className="h-16 w-16 mb-4 stroke-[1]" />
                         <p className="text-lg font-black text-gray-400 italic">No activity logs found for this cycle</p>

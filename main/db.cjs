@@ -21,6 +21,7 @@ const orders = sqliteTable("orders", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   items: text("items").notNull(),
   total: text("total").notNull(),
+  userId: integer("userId").references(() => users.id),
   createdAt: text("createdAt").default(new Date().toISOString()),
 });
 
@@ -50,6 +51,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     items TEXT NOT NULL,
     total TEXT NOT NULL,
+    userId INTEGER REFERENCES users(id),
     createdAt TEXT DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -60,7 +62,28 @@ db.exec(`
     role TEXT NOT NULL DEFAULT 'cashier',
     createdAt TEXT DEFAULT CURRENT_TIMESTAMP
   );
+
+  -- Migration: Add userId to orders if it doesn't exist
+  PRAGMA foreign_keys=OFF;
+  BEGIN TRANSACTION;
+  SELECT name FROM sqlite_master WHERE type='table' AND name='orders' AND sql LIKE '%userId%';
+  -- The following logic is handled better in JS for better-sqlite3
+  COMMIT;
+  PRAGMA foreign_keys=ON;
 `);
+
+try {
+  // Check if userId column exists in orders table
+  const tableInfo = db.prepare("PRAGMA table_info(orders)").all();
+  const hasUserId = tableInfo.some(col => col.name === 'userId');
+
+  if (!hasUserId) {
+    db.prepare("ALTER TABLE orders ADD COLUMN userId INTEGER REFERENCES users(id)").run();
+    console.log("✓ Migration: Added userId column to orders table");
+  }
+} catch (err) {
+  console.error("Migration error:", err);
+}
 
 const bcrypt = require("bcryptjs");
 

@@ -41,6 +41,7 @@ ipcMain.handle("auth:login", async (_, { username, password }) => {
     }
 
     currentUser = { id: user.id, username: user.username, role: user.role };
+    console.log("✓ Login Success - Global currentUser set to:", currentUser);
     return { success: true, user: currentUser };
   } catch (err) {
     console.error("Login error:", err);
@@ -56,6 +57,7 @@ ipcMain.handle("auth:logout", () => {
 
 // Get current user
 ipcMain.handle("auth:getCurrentUser", () => {
+  console.log("Session Check: currentUser is currently", currentUser?.username || "NULL");
   return currentUser;
 });
 
@@ -341,11 +343,21 @@ ipcMain.handle("order:create", (_, data) => {
       }
     }
 
+    // Attribution logic
+    const userId = data.operatorId || currentUser?.id || null;
+
     // Insert order
+    console.log("Order Attribution Trace:");
+    console.log("- Provided Operator ID (Frontend):", data.operatorId);
+    console.log("- Global Current User ID (Backend):", currentUser?.id);
+    console.log("- Final userId used for INSERT:", userId);
+
     const orderResult = db.prepare(`
-      INSERT INTO orders (items, total, createdAt)
-      VALUES (?, ?, ?)
-    `).run(JSON.stringify(data.items), data.total.toString(), new Date().toISOString());
+      INSERT INTO orders (items, total, userId, createdAt)
+      VALUES (?, ?, ?, ?)
+    `).run(JSON.stringify(data.items), data.total.toString(), userId, new Date().toISOString());
+
+    console.log("- Order ID Created:", orderResult.lastInsertRowid);
 
     // Update stock for each item (negative quantities add stock back for refunds)
     data.items.forEach((item) => {
@@ -403,8 +415,12 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
     // Get all products
     const products = db.prepare(`SELECT * FROM products`).all();
 
-    // Get orders within date range
-    let orders = db.prepare(`SELECT * FROM orders`).all();
+    // Get orders within date range (with user info)
+    let orders = db.prepare(`
+      SELECT o.*, u.username as processedBy, u.role as processorRole
+      FROM orders o
+      LEFT JOIN users u ON o.userId = u.id
+    `).all();
 
     if (period !== "overall") {
       orders = orders.filter((order) => {
@@ -433,6 +449,8 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
         itemCount: items.length,
         items: items, // Include full items for display
         createdAt: order.createdAt,
+        processedBy: order.processedBy || "System",
+        processorRole: order.processorRole || ""
       });
     });
 

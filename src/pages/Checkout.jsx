@@ -8,7 +8,7 @@ import { useOutletContext } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 const Checkout = () => {
-  const { carts, setCarts, activeCartIndex, setActiveCartIndex, discount, setDiscount } = useOutletContext();
+  const { user, carts, setCarts, activeCartIndex, setActiveCartIndex, discount, setDiscount } = useOutletContext();
   const [lastOrder, setLastOrder] = useState(null);
 
   const cart = carts[activeCartIndex] || [];
@@ -138,6 +138,7 @@ const Checkout = () => {
       const result = await window.api.createOrder({
         items: cart,
         total: finalTotal,
+        operatorId: user?.id, // Redundancy for attribution
       });
 
       if (!result || !result.success) {
