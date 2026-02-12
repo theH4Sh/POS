@@ -1,18 +1,44 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+const periodLabels = {
+  daily: "Today",
+  monthly: "This Month",
+  yearly: "This Year",
+  overall: "Overall",
+};
+
+const StatCard = ({ icon: IconComponent, label, value, subtext, color }) => (
+  <div className={`bg-white rounded-xl shadow-lg p-6 border-l-4 ${color}`}>
+    <div className="flex items-start justify-between">
+      <div>
+        <p className="text-gray-500 text-sm font-medium">{label}</p>
+        <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
+        {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
+      </div>
+      <div className={`p-3 rounded-lg ${color.replace('border', 'bg').replace('-4', '-100')}`}>
+        <IconComponent className="h-6 w-6" />
+      </div>
+    </div>
+  </div>
+);
+
 const Dashboard = ({ user }) => {
   const navigate = useNavigate();
-  
+
   // Redirect if not admin
   useEffect(() => {
     if (user?.role !== "admin") {
       navigate("/");
     }
   }, [user, navigate]);
+
   const [period, setPeriod] = useState("monthly");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // 0-11
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalCost: 0,
@@ -30,7 +56,13 @@ const Dashboard = ({ user }) => {
     const loadDashboard = async () => {
       setLoading(true);
       try {
-        const params = period === "custom-year" ? { period: "custom-year", year: selectedYear } : period;
+        let params = period;
+        if (period === "custom-year") {
+          params = { period: "custom-year", year: selectedYear };
+        } else if (period === "custom-month") {
+          params = { period: "custom-month", year: selectedYear, month: selectedMonth };
+        }
+
         const dashboardData = await window.api.getDashboardStats(params);
         setStats(dashboardData.stats);
         setTopProducts(dashboardData.topProducts || []);
@@ -43,30 +75,16 @@ const Dashboard = ({ user }) => {
     };
 
     loadDashboard();
-  }, [period, selectedYear]);
+  }, [period, selectedYear, selectedMonth]);
 
-  const periodLabels = {
-    daily: "Today",
-    monthly: "This Month",
-    yearly: "This Year",
-    overall: "Overall",
-    "custom-year": `Year ${selectedYear}`,
+
+
+  // Dynamic label for custom periods
+  const getPeriodLabel = () => {
+    if (period === "custom-year") return `Year ${selectedYear}`;
+    if (period === "custom-month") return `${new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}`;
+    return periodLabels[period];
   };
-
-  const StatCard = ({ icon: Icon, label, value, subtext, color }) => (
-    <div className={`bg-white rounded-xl shadow-lg p-6 border-l-4 ${color}`}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-gray-500 text-sm font-medium">{label}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
-          {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
-        </div>
-        <div className={`p-3 rounded-lg ${color.replace('border', 'bg').replace('-4', '-100')}`}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
-  );
 
   if (loading) {
     return (
@@ -98,15 +116,14 @@ const Dashboard = ({ user }) => {
               {/* Quick Period Buttons */}
               <div className="flex gap-2 flex-wrap">
                 {Object.entries(periodLabels).map(([key, label]) => (
-                  key !== "custom-year" && (
+                  !key.startsWith("custom") && (
                     <button
                       key={key}
                       onClick={() => setPeriod(key)}
-                      className={`group relative px-5 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 overflow-hidden ${
-                        period === key
-                          ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30 scale-105"
-                          : "text-gray-700 hover:text-gray-900 hover:bg-white/80 hover:shadow-md"
-                      }`}
+                      className={`group relative px-5 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 overflow-hidden ${period === key
+                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30 scale-105"
+                        : "text-gray-700 hover:text-gray-900 hover:bg-white/80 hover:shadow-md"
+                        }`}
                     >
                       {period === key && (
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 opacity-0 group-hover:opacity-20 transition-opacity" />
@@ -117,58 +134,79 @@ const Dashboard = ({ user }) => {
                   )
                 ))}
               </div>
-              
-              {/* Year Selector - Sexy Variant */}
-              <div className={`mt-4 p-4 rounded-xl transition-all duration-300 ${
-                period === "custom-year"
+
+              {/* Custom Selector Row */}
+              <div className="flex gap-4 flex-wrap">
+                {/* Year Selector */}
+                <div className={`p-2 rounded-xl transition-all duration-300 flex-1 ${period === "custom-year"
                   ? "bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border-2 border-purple-300/50"
                   : "bg-white/40 border border-gray-200/50 hover:bg-white/60"
-              }`}>
-                <div className="flex items-center gap-3 flex-wrap">
+                  }`}>
                   <button
                     onClick={() => setPeriod("custom-year")}
-                    className={`relative px-5 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap overflow-hidden group ${
-                      period === "custom-year"
-                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30 scale-105"
-                        : "text-gray-700 hover:text-gray-900 bg-white hover:shadow-md hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50"
-                    }`}
+                    className={`w-full relative px-4 py-2 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 mb-2 ${period === "custom-year"
+                      ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30"
+                      : "text-gray-700 hover:text-purple-600"
+                      }`}
                   >
-                    {period === "custom-year" && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-indigo-400 opacity-0 group-hover:opacity-20 transition-opacity" />
-                    )}
-                    <Calendar className={`h-4 w-4 transition-transform ${period === "custom-year" ? "scale-110" : "group-hover:scale-110"}`} />
-                    <span className="relative">View Year</span>
+                    View Year
                   </button>
-                  
-                  <div className="flex items-center gap-2 flex-1 min-w-fit">
-                    <label className={`text-sm font-semibold transition-colors ${period === "custom-year" ? "text-purple-700" : "text-gray-600"}`}>
-                      Year:
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        min="2020"
-                        max={new Date().getFullYear()}
-                        value={selectedYear}
-                        onChange={(e) => {
-                          setSelectedYear(parseInt(e.target.value) || new Date().getFullYear());
-                          setPeriod("custom-year");
-                        }}
-                        className={`w-32 px-4 py-3 rounded-xl font-bold text-center text-lg transition-all duration-300 focus:outline-none focus:ring-2 ${
-                          period === "custom-year"
-                            ? "border-2 border-purple-400 bg-white text-purple-700 focus:ring-purple-500/50 shadow-md shadow-purple-200"
-                            : "border-2 border-gray-300 bg-white/80 text-gray-700 focus:ring-blue-500/50 hover:border-gray-400 hover:bg-white"
-                        }`}
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">📅</div>
-                    </div>
+                  <div className="flex items-center gap-2 justify-center">
+                    <input
+                      type="number"
+                      min="2020"
+                      max={new Date().getFullYear()}
+                      value={selectedYear}
+                      onChange={(e) => {
+                        setSelectedYear(parseInt(e.target.value) || new Date().getFullYear());
+                        setPeriod("custom-year");
+                      }}
+                      className="w-full px-3 py-2 rounded-lg text-center font-bold text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    />
                   </div>
-                  
-                  {period === "custom-year" && (
-                    <div className="ml-auto text-sm font-bold text-purple-600 px-4 py-2 bg-purple-100/50 rounded-lg whitespace-nowrap">
-                      ✨ {selectedYear}
-                    </div>
-                  )}
+                </div>
+
+                {/* Month Selector */}
+                <div className={`p-2 rounded-xl transition-all duration-300 flex-[1.5] ${period === "custom-month"
+                  ? "bg-gradient-to-r from-pink-500/10 to-rose-500/10 border-2 border-pink-300/50"
+                  : "bg-white/40 border border-gray-200/50 hover:bg-white/60"
+                  }`}>
+                  <button
+                    onClick={() => setPeriod("custom-month")}
+                    className={`w-full relative px-4 py-2 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 mb-2 ${period === "custom-month"
+                      ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg shadow-pink-500/30"
+                      : "text-gray-700 hover:text-pink-600"
+                      }`}
+                  >
+                    View Month
+                  </button>
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedMonth}
+                      onChange={(e) => {
+                        setSelectedMonth(parseInt(e.target.value));
+                        setPeriod("custom-month");
+                      }}
+                      className="flex-1 px-3 py-2 rounded-lg font-medium text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500/50 appearance-none bg-white"
+                    >
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <option key={i} value={i}>
+                          {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min="2020"
+                      max={new Date().getFullYear()}
+                      value={selectedYear}
+                      onChange={(e) => {
+                        setSelectedYear(parseInt(e.target.value) || new Date().getFullYear());
+                        setPeriod("custom-month");
+                      }}
+                      className="w-24 px-3 py-2 rounded-lg text-center font-bold text-gray-700 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -286,7 +324,7 @@ const Dashboard = ({ user }) => {
         <div className="bg-white rounded-xl shadow-lg p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <ShoppingCart className="h-5 w-5 text-blue-600" />
-            Recent Orders ({periodLabels[period]})
+            Recent Orders ({getPeriodLabel()})
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -303,15 +341,25 @@ const Dashboard = ({ user }) => {
                   recentOrders.map((order, idx) => (
                     <tr key={idx} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 font-mono text-gray-700">#{order.id}</td>
-                      <td className="px-4 py-3 text-gray-600">{order.itemCount} items</td>
+                      <td className="px-4 py-3 text-gray-600">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-900">{order.itemCount} items</span>
+                          <span className="text-xs text-gray-500 line-clamp-2">
+                            {order.items && order.items.map(i => `${i.name} (${i.quantity})`).join(", ")}
+                          </span>
+                        </div>
+                      </td>
                       <td className="px-4 py-3 font-bold text-green-600">${parseFloat(order.total).toFixed(2)}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">{new Date(order.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                        <div className="text-[10px] text-gray-400">{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan="4" className="px-4 py-8 text-center text-gray-400">
-                      No orders yet for {periodLabels[period].toLowerCase()}
+                      No orders yet for {getPeriodLabel().toLowerCase()}
                     </td>
                   </tr>
                 )}

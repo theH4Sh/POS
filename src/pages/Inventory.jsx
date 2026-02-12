@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import AddProductModal from "../components/AddProductModal";
 import EditProductModal from "../components/EditProductModal";
@@ -15,7 +15,7 @@ const Inventory = () => {
 
   const isAdmin = user?.role === "admin";
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const medicines = await window.api.listMedicines();
     const formatted = medicines.map((m) => {
       const stock = m.quantity || 0;
@@ -24,11 +24,12 @@ const Inventory = () => {
       return { ...m, stock, status };
     });
     setProducts(formatted);
-  };
+  }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
-  }, []);
+  }, [load]);
 
   const filteredProducts = products.filter(
     (p) =>

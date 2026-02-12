@@ -336,9 +336,10 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
     const now = new Date();
     let startDate, endDate;
 
-    // Handle both string period and object with {period, year}
+    // Handle both string period and object with {period, year, month}
     let period = typeof params === "string" ? params : params.period;
     const customYear = typeof params === "object" ? params.year : null;
+    const customMonth = typeof params === "object" ? params.month : null; // 0-indexed or 1-indexed? Let's assume passed as 0-11 for consistency with Date
 
     // Calculate date range based on period
     if (period === "daily") {
@@ -346,13 +347,16 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
       endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     } else if (period === "monthly") {
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     } else if (period === "yearly") {
       startDate = new Date(now.getFullYear(), 0, 1);
-      endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
     } else if (period === "custom-year" && customYear) {
       startDate = new Date(customYear, 0, 1);
       endDate = new Date(customYear, 11, 31, 23, 59, 59, 999);
+    } else if (period === "custom-month" && customYear && customMonth !== undefined) {
+      startDate = new Date(customYear, customMonth, 1);
+      endDate = new Date(customYear, customMonth + 1, 0, 23, 59, 59, 999);
     } else {
       // overall - no date filter
       startDate = new Date(0);
@@ -390,11 +394,12 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
         id: order.id,
         total: order.total,
         itemCount: items.length,
+        items: items, // Include full items for display
         createdAt: order.createdAt,
       });
     });
 
-    recentOrders = recentOrders.slice(-10).reverse();
+    recentOrders = recentOrders.slice(-20).reverse(); // Increased limit to 20 just in case
 
     // Get top products by sales
     const productSales = {};
