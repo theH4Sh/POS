@@ -87,27 +87,14 @@ export default function Login({ onLogin }) {
               type="submit"
               disabled={loading}
               className={`w-full py-3 rounded-lg font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 ${loading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl"
                 }`}
             >
               <LogIn className="h-5 w-5" />
               {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
-
-          {/* Help Text */}
-          <div className="pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-600 text-center">
-              Default credentials for testing:
-            </p>
-            <p className="text-sm font-mono text-gray-700 text-center mt-2">
-              Username: <span className="font-bold">admin</span>
-            </p>
-            <p className="text-sm font-mono text-gray-700 text-center">
-              Password: <span className="font-bold">admin123</span>
-            </p>
-          </div>
         </div>
 
         {/* Footer */}
