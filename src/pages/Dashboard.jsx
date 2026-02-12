@@ -1,7 +1,7 @@
 
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar } from "lucide-react";
+import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar, X, Receipt } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const periodLabels = {
@@ -69,6 +69,7 @@ const Dashboard = ({ user }) => {
   const [topProducts, setTopProducts] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -363,7 +364,7 @@ const Dashboard = ({ user }) => {
                 <tr className="bg-gray-50/50">
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Audit ID</th>
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Operator</th>
-                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Itemized Manifest</th>
+                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Items</th>
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Amount</th>
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Timestamp</th>
                 </tr>
@@ -371,7 +372,11 @@ const Dashboard = ({ user }) => {
               <tbody className="divide-y divide-gray-50">
                 {recentOrders.length > 0 ? (
                   recentOrders.map((order, idx) => (
-                    <tr key={idx} className="group hover:bg-blue-50/30 transition-all duration-200">
+                    <tr
+                      key={idx}
+                      onClick={() => setSelectedOrder(order)}
+                      className="group hover:bg-blue-50/30 transition-all duration-200 cursor-pointer"
+                    >
                       <td className="px-8 py-5">
                         <span className="font-mono text-[11px] font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded-md border border-gray-200 group-hover:bg-white group-hover:border-blue-200 group-hover:text-blue-600 transition-colors">
                           #{order.id}
@@ -391,15 +396,10 @@ const Dashboard = ({ user }) => {
                         </div>
                       </td>
                       <td className="px-8 py-5">
-                        <div className="flex flex-col gap-1">
-                          <span className="font-black text-gray-900 flex items-center gap-2">
-                            {order.itemCount} Units
-                            {order.itemCount > 5 && <span className="bg-indigo-50 text-indigo-600 text-[9px] px-1.5 py-0.5 rounded font-black border border-indigo-100 shadow-sm">BULK ORDER</span>}
-                          </span>
-                          <span className="text-[11px] font-medium text-gray-500 line-clamp-1 italic">
-                            {order.items && order.items.map(i => `${i.name}`).join(" • ")}
-                          </span>
-                        </div>
+                        <span className="font-black text-gray-900 flex items-center gap-2">
+                          {order.itemCount} {order.itemCount === 1 ? 'Item' : 'Items'}
+                          {order.itemCount > 5 && <span className="bg-indigo-50 text-indigo-600 text-[9px] px-1.5 py-0.5 rounded font-black border border-indigo-100 shadow-sm">BULK</span>}
+                        </span>
                       </td>
                       <td className="px-8 py-5">
                         <span className={`text-base font-black ${order.total > 0 ? 'text-green-600' : 'text-red-600'}`}>{Number(order.total)} PKR </span>
@@ -429,6 +429,102 @@ const Dashboard = ({ user }) => {
           </div>
         </div>
       </div>
+
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300" onClick={() => setSelectedOrder(null)}>
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto animate-in zoom-in-95 duration-300" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-6 flex items-center justify-between z-10 border-b border-white/10">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+                  <Receipt className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-white tracking-tight">Order Details</h2>
+                  <p className="text-blue-100 text-sm font-bold mt-0.5">Audit ID: #{selectedOrder.id}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="p-2 hover:bg-white/20 rounded-xl transition-colors"
+              >
+                <X className="h-6 w-6 text-white" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Order Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Processed By</p>
+                  <div className="flex items-center gap-2">
+                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-black text-xs ${selectedOrder.processorRole === 'admin' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
+                      {selectedOrder.processedBy[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-black text-gray-900 leading-none">{selectedOrder.processedBy}</p>
+                      <span className={`text-[9px] font-black uppercase tracking-tighter ${selectedOrder.processorRole === 'admin' ? 'text-blue-500' : 'text-gray-400'}`}>
+                        {selectedOrder.processorRole || 'System'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Timestamp</p>
+                  <p className="text-sm font-black text-gray-900">{new Date(selectedOrder.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                  <p className="text-xs font-bold text-gray-500">{new Date(selectedOrder.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+              </div>
+
+              {/* Items List */}
+              <div>
+                <h3 className="text-lg font-black text-gray-900 mb-3 flex items-center gap-2">
+                  <Package className="h-5 w-5 text-blue-600" />
+                  Itemized Breakdown
+                </h3>
+                <div className="space-y-2">
+                  {selectedOrder.items && selectedOrder.items.map((item, idx) => (
+                    <div key={idx} className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex items-center justify-between hover:bg-white hover:border-blue-100 transition-all">
+                      <div className="flex-1">
+                        <p className="font-black text-gray-900">{item.name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-bold text-gray-500">{item.category}</span>
+                          <div className="w-1 h-1 rounded-full bg-gray-300"></div>
+                          <span className="text-xs font-black text-blue-600">Qty: {item.quantity}</span>
+                          <div className="w-1 h-1 rounded-full bg-gray-300"></div>
+                          <span className="text-xs font-bold text-gray-500">@ Rs {item.salePrice} each</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-black text-gray-900">Rs {Math.round(item.salePrice * item.quantity)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Total */}
+              <div className="border-t border-gray-200 pt-4">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border-2 border-blue-100">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Total Amount</p>
+                      <p className={`text-3xl font-black tracking-tight ${selectedOrder.total > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        Rs {Math.abs(Number(selectedOrder.total))}
+                      </p>
+                    </div>
+                    {selectedOrder.total < 0 && (
+                      <span className="bg-red-100 text-red-600 text-xs font-black px-3 py-1.5 rounded-full border border-red-200 uppercase">Refund</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

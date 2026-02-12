@@ -101,75 +101,78 @@ export const Navbar = ({ user, onLogout }) => {
               </button>
 
               {showDropdown && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowDropdown(false)}
-                  ></div>
-                  <div className="absolute right-0 mt-3 w-64 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200">
-                    <div className="p-6 bg-gradient-to-br from-gray-50 to-white border-b border-gray-100">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="h-12 w-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-xl font-black">
-                          {user?.username?.[0].toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="text-base font-black text-gray-900 leading-none">{user?.username}</p>
-                          <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mt-1">{user?.role} ACCOUNT</p>
-                        </div>
+                <div className="absolute right-0 mt-3 w-64 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200">
+                  <div className="p-6 bg-gradient-to-br from-gray-50 to-white border-b border-gray-100">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="h-12 w-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-xl font-black">
+                        {user?.username?.[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-base font-black text-gray-900 leading-none">{user?.username}</p>
+                        <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mt-1">{user?.role} ACCOUNT</p>
                       </div>
                     </div>
+                  </div>
 
-                    <div className="p-2">
-                      {user?.role === "admin" && (
-                        <button
-                          onClick={() => {
-                            handleAdminPanel();
-                            setShowDropdown(false);
-                          }}
-                          className="w-full text-left px-4 py-3.5 hover:bg-blue-50 text-gray-700 font-bold rounded-2xl flex items-center gap-3 transition-all group"
-                        >
-                          <div className="p-2 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                            <Lock className="h-4 w-4" />
-                          </div>
-                          <span className="text-sm">Admin Settings</span>
-                        </button>
-                      )}
-
+                  <div className="p-2">
+                    {user?.role === "admin" && (
                       <button
                         onClick={() => {
-                          setShowProfileModal(true);
+                          handleAdminPanel();
                           setShowDropdown(false);
                         }}
                         className="w-full text-left px-4 py-3.5 hover:bg-blue-50 text-gray-700 font-bold rounded-2xl flex items-center gap-3 transition-all group"
                       >
                         <div className="p-2 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                          <User className="h-4 w-4" />
+                          <Lock className="h-4 w-4" />
                         </div>
-                        <span className="text-sm">My Profile</span>
+                        <span className="text-sm">Admin Settings</span>
                       </button>
+                    )}
 
-                      <div className="h-px bg-gray-100 my-2 mx-4"></div>
+                    <button
+                      onClick={() => {
+                        setShowProfileModal(true);
+                        setShowDropdown(false);
+                      }}
+                      className="w-full text-left px-4 py-3.5 hover:bg-blue-50 text-gray-700 font-bold rounded-2xl flex items-center gap-3 transition-all group"
+                    >
+                      <div className="p-2 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <User className="h-4 w-4" />
+                      </div>
+                      <span className="text-sm">My Profile</span>
+                    </button>
 
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setShowDropdown(false);
-                        }}
-                        className="w-full text-left px-4 py-3.5 hover:bg-red-50 text-red-600 font-bold rounded-2xl flex items-center gap-3 transition-all group"
-                      >
-                        <div className="p-2 bg-red-50 text-red-600 rounded-xl group-hover:bg-red-600 group-hover:text-white transition-colors">
-                          <LogOut className="h-4 w-4" />
-                        </div>
-                        <span className="text-sm">Sign Out System</span>
-                      </button>
-                    </div>
+                    <div className="h-px bg-gray-100 my-2 mx-4"></div>
+
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setShowDropdown(false);
+                      }}
+                      className="w-full text-left px-4 py-3.5 hover:bg-red-50 text-red-600 font-bold rounded-2xl flex items-center gap-3 transition-all group"
+                    >
+                      <div className="p-2 bg-red-50 text-red-600 rounded-xl group-hover:bg-red-600 group-hover:text-white transition-colors">
+                        <LogOut className="h-4 w-4" />
+                      </div>
+                      <span className="text-sm">Sign Out System</span>
+                    </button>
                   </div>
-                </>
+                </div>
               )}
             </div>
           </div>
         </div>
       </nav>
+
+      {/* Dropdown Backdrop - Outside navbar for full screen coverage */}
+      {showDropdown && (
+        <div
+          className="fixed inset-0 z-[90]"
+          onClick={() => setShowDropdown(false)}
+        ></div>
+      )}
+
       <ProfileModal
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
