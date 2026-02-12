@@ -62,16 +62,20 @@ db.exec(`
   );
 `);
 
+const bcrypt = require("bcryptjs");
+
 // Create default admin if none exists
 const adminExists = db.prepare(`SELECT COUNT(*) as cnt FROM users WHERE role = 'admin'`).get();
 if (adminExists.cnt === 0) {
-  // Simple hash function (in production use bcrypt)
+  // Hash the default password securely
   const defaultPassword = "admin123";
+  const hashedPassword = bcrypt.hashSync(defaultPassword, 10);
+
   db.prepare(`
     INSERT INTO users (username, password, role)
     VALUES (?, ?, ?)
-  `).run("admin", defaultPassword, "admin");
-  console.log("✓ Default admin created - username: admin, password: admin123");
+  `).run("admin", hashedPassword, "admin");
+  console.log("✓ Default admin created - username: admin, password: admin123 (hashed)");
 }
 
 const orm = drizzle(db);

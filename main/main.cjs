@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const { db, orm, products, orders } = require("./db.cjs");
+const bcrypt = require("bcryptjs");
 
 let mainWindow;
 let currentUser = null; // Store current logged-in user
@@ -25,12 +26,20 @@ function createWindow() {
 // ===== AUTH HANDLERS =====
 
 // Login handler
-ipcMain.handle("auth:login", (_, { username, password }) => {
+ipcMain.handle("auth:login", async (_, { username, password }) => {
   try {
-    const user = db.prepare(`SELECT * FROM users WHERE username = ? AND password = ?`).get(username, password);
+    const user = db.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
+
     if (!user) {
       return { success: false, message: "Invalid username or password" };
     }
+
+    // Verify hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return { success: false, message: "Invalid username or password" };
+    }
+
     currentUser = { id: user.id, username: user.username, role: user.role };
     return { success: true, user: currentUser };
   } catch (err) {
@@ -51,15 +60,15 @@ ipcMain.handle("auth:getCurrentUser", () => {
 });
 
 // Update user profile
-ipcMain.handle("auth:updateProfile", (_, { currentPassword, newUsername, newPassword }) => {
+ipcMain.handle("auth:updateProfile", async (_, { currentPassword, newUsername, newPassword }) => {
   try {
     if (!currentUser) {
       return { success: false, message: "Not logged in" };
     }
 
     // Verify current password
-    const user = db.prepare(`SELECT * FROM users WHERE id = ? AND password = ?`).get(currentUser.id, currentPassword);
-    if (!user) {
+    const user = db.prepare(`SELECT * FROM users WHERE id = ?`).get(currentUser.id);
+    if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
       return { success: false, message: "Incorrect current password" };
     }
 
@@ -79,8 +88,9 @@ ipcMain.handle("auth:updateProfile", (_, { currentPassword, newUsername, newPass
     }
 
     if (newPassword) {
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
       updates.push("password = ?");
-      params.push(newPassword);
+      params.push(hashedPassword);
     }
 
     if (updates.length > 0) {
@@ -96,7 +106,7 @@ ipcMain.handle("auth:updateProfile", (_, { currentPassword, newUsername, newPass
 });
 
 // Register cashier (admin only)
-ipcMain.handle("auth:registerCashier", (_, { username, password }) => {
+ipcMain.handle("auth:registerCashier", async (_, { username, password }) => {
   try {
     if (!currentUser || currentUser.role !== "admin") {
       return { success: false, message: "Unauthorized - admin only" };
@@ -108,11 +118,14 @@ ipcMain.handle("auth:registerCashier", (_, { username, password }) => {
       return { success: false, message: "Username already exists" };
     }
 
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Insert new cashier
     db.prepare(`
       INSERT INTO users (username, password, role)
       VALUES (?, ?, ?)
-    `).run(username, password, "cashier");
+    `).run(username, hashedPassword, "cashier");
 
     return { success: true, message: `Cashier '${username}' created successfully` };
   } catch (err) {
