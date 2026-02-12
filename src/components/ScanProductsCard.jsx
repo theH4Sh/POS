@@ -86,86 +86,95 @@ const ScanProductsCard = ({ onProductScanned }) => {
         </div>
       )}
 
-      <div className="rounded-xl border border-gray-200 bg-white shadow-md overflow-hidden relative">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 border-b border-blue-800">
-          <h3 className="text-xl font-bold text-white flex items-center">
-            <Barcode className="mr-3 h-6 w-6" />
-            Scan Products
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden flex flex-col h-[600px] relative">
+        {/* Header */}
+        <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <h3 className="text-lg font-bold flex items-center text-gray-800 gap-2">
+            <div className="bg-indigo-100 p-2 rounded-lg">
+              <Barcode className="h-5 w-5 text-indigo-600" />
+            </div>
+            Product Lookup
           </h3>
-          <p className="text-blue-100 text-sm mt-1">
-            Quickly find products by barcode or name
-          </p>
         </div>
 
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-start gap-3">
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
               <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-              <span>{error}</span>
+              <span className="font-medium">{error}</span>
             </div>
           )}
 
-          {/* Barcode */}
-          <form onSubmit={handleBarcodeSubmit} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              <Barcode className="inline h-4 w-4 mr-1" />
-              Barcode
+          {/* Barcode Section */}
+          <div className="space-y-3">
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Barcode className="h-3.5 w-3.5" />
+              Scan Barcode
             </label>
-            <div className="flex gap-2">
+            <form onSubmit={handleBarcodeSubmit} className="relative group">
               <input
                 type="text"
-                placeholder="Scan or enter barcode..."
+                placeholder="Scan product barcode..."
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
-                className="flex-1 h-11 border border-gray-300 rounded-lg px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                className="w-full h-12 pl-4 pr-24 bg-gray-50 border-2 border-transparent transition-all duration-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none font-mono"
                 disabled={loading}
                 autoFocus
               />
               <button
                 type="submit"
-                className="h-11 px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                disabled={loading}
+                disabled={loading || !barcode.trim()}
+                className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md flex items-center gap-2"
               >
-                {loading && <Loader className="h-4 w-4 animate-spin" />}
-                {!loading && "Scan"}
+                {loading ? <Loader className="h-4 w-4 animate-spin" /> : "Scan"}
               </button>
-            </div>
-          </form>
+            </form>
+          </div>
 
-          {/* Name Search */}
-          <form onSubmit={handleSearchSubmit} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              <Search className="inline h-4 w-4 mr-1" />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-3 bg-white text-xs font-medium text-gray-400 uppercase tracking-widest">Or Search</span>
+            </div>
+          </div>
+
+          {/* Search Section */}
+          <div className="space-y-3">
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Search className="h-3.5 w-3.5" />
               Search by Name
             </label>
-            <div className="flex gap-2">
+            <form onSubmit={handleSearchSubmit} className="relative group">
               <input
                 type="text"
                 placeholder="Type product name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 h-11 border border-gray-300 rounded-lg px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                className="w-full h-12 pl-4 pr-24 bg-gray-50 border-2 border-transparent transition-all duration-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-gray-900 focus:ring-4 focus:ring-gray-900/10 outline-none"
                 disabled={loading}
               />
               <button
                 type="submit"
-                className="h-11 px-6 bg-gray-700 text-white rounded-lg hover:bg-gray-800 active:bg-gray-900 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                disabled={loading}
+                disabled={loading || !searchQuery.trim()}
+                className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-gray-900 hover:bg-black text-white rounded-lg font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md flex items-center gap-2"
               >
-                {loading && <Loader className="h-4 w-4 animate-spin" />}
-                {!loading && "Find"}
+                {loading ? <Loader className="h-4 w-4 animate-spin" /> : "Find"}
               </button>
-            </div>
-          </form>
+            </form>
+          </div>
 
           {/* Results List */}
-          {results.length > 0 && (
-            <div className="mt-6">
-              <p className="text-sm font-medium text-gray-600 mb-3">
-                Found {results.length} product{results.length !== 1 ? "s" : ""}
-              </p>
-              <div className="space-y-2 max-h-72 overflow-y-auto pr-2">
+          {results.length > 0 ? (
+            <div className="pt-2 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-semibold text-gray-900">Search Results</span>
+                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">{results.length} found</span>
+              </div>
+
+              <div className="space-y-2.5 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
                 {results.map((product) => (
                   <div
                     key={product.id}
@@ -173,37 +182,40 @@ const ScanProductsCard = ({ onProductScanned }) => {
                     onMouseEnter={() => setHoveredProduct(product)}
                     onMouseLeave={() => setHoveredProduct(null)}
                     onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
-                    className="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 cursor-pointer transition-all active:scale-98 group relative"
+                    className="group bg-white border border-gray-100 p-3 rounded-xl hover:border-indigo-500 hover:shadow-md hover:ring-2 hover:ring-indigo-500/10 cursor-pointer transition-all duration-200 active:scale-[0.98]"
                   >
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition truncate">
+                        <div className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors truncate text-sm">
                           {product.name}
                         </div>
-                        <div className="text-xs text-gray-500 mt-1 space-y-1">
-                          <div>Barcode: <span className="font-mono text-gray-700">{product.barcode}</span></div>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className="font-mono text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 group-hover:border-indigo-100 group-hover:text-indigo-600 transition-colors">
+                            {product.barcode || "No Barcode"}
+                          </span>
+                          <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${(product.stock || 0) < 10 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
+                            }`}>
+                            {product.stock || 0} left
+                          </span>
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <div className="text-lg font-bold text-blue-600">
-                          Rs {product.salePrice}
+                      <div className="text-right">
+                        <div className="text-base font-bold text-indigo-600 font-mono">
+                          {Number(product.salePrice).toFixed(2)}
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">Sale price</div>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          )}
-
-          {/* Empty state */}
-          {!loading && results.length === 0 && !error && (
-            <div className="text-center py-8 text-gray-400">
-              <Search className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No products selected yet</p>
-              <p className="text-xs mt-1">Start by scanning a barcode or searching by name</p>
-            </div>
+          ) : (
+            !loading && !error && (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-400 opacity-60">
+                <Search className="h-10 w-10 mb-2 stroke-[1.5]" />
+                <p className="text-sm font-medium">Ready to search</p>
+              </div>
+            )
           )}
         </div>
       </div>

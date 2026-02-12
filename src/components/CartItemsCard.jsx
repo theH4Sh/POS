@@ -7,88 +7,82 @@ const CartItemsCard = ({
   onClearCart,
   onCheckout,
   discount = 0,
-  onDiscountChange = () => {},
+  onDiscountChange = () => { },
 }) => {
   const subtotal = cart.reduce(
     (acc, item) => acc + Number(item.salePrice) * item.quantity,
     0
   );
-  
+
   const discountAmount = (subtotal * discount / 100);
   const total = subtotal - discountAmount;
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-md flex flex-col">
-      
+    <div className="rounded-2xl border border-gray-200 bg-white shadow-xl flex flex-col h-[600px] overflow-hidden">
+
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
-        <h3 className="text-xl font-semibold flex items-center text-gray-800">
-          <ShoppingCart className="mr-2 h-5 w-5 text-blue-600" />
-          Cart
+      <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+        <h3 className="text-lg font-bold flex items-center text-gray-800 gap-2">
+          <div className="bg-blue-100 p-2 rounded-lg">
+            <ShoppingCart className="h-5 w-5 text-blue-600" />
+          </div>
+          Current Cart
         </h3>
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          {cart.length} Items
+        </span>
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-auto max-h-[420px]">
+      <div className="flex-1 overflow-auto custom-scrollbar">
         {cart.length === 0 ? (
-          <div className="flex items-center justify-center h-48 text-gray-500">
-            Cart is empty
+          <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-3">
+            <ShoppingCart className="h-12 w-12 opacity-20" />
+            <p className="font-medium">Cart is empty</p>
+            <p className="text-xs max-w-[200px] text-center opacity-60">Scan products or use the search bar to add items</p>
           </div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-600">
+            <thead className="bg-white sticky top-0 z-10 text-gray-500 text-xs uppercase tracking-wider font-semibold border-b border-gray-100 shadow-sm">
               <tr>
-                <th className="p-4 text-left font-medium">Product</th>
-                <th className="p-4 text-right font-medium">Price</th>
-                <th className="p-4 text-center font-medium">Qty</th>
-                <th className="p-4 text-right font-medium">Total</th>
-                <th className="p-4"></th>
+                <th className="px-6 py-4 text-left">Product</th>
+                <th className="px-6 py-4 text-center">Qty</th>
+                <th className="px-6 py-4 text-right">Price</th>
+                <th className="px-6 py-4 text-right">Total</th>
+                <th className="px-4 py-4"></th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-gray-50">
               {cart.map((item) => (
                 <tr
                   key={item.id}
-                  className="border-b border-gray-100 hover:bg-gray-50 transition"
+                  className="group hover:bg-blue-50/30 transition-colors duration-200"
                 >
                   {/* Product */}
-                  <td className="p-4">
-                    <div className="font-medium text-gray-800">
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-gray-900 mb-0.5">
                       {item.name}
                     </div>
-                    <div className="text-xs text-gray-400">
-                      {item.barcode || "No barcode"}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      Available:{" "}
-                      <span className="font-medium">
-                        {item.stock ?? "—"}
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">{item.barcode || "N/A"}</span>
+                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${(item.stock || 0) < 10 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
+                        }`}>
+                        {item.stock} left
                       </span>
                     </div>
                   </td>
 
-                  {/* Price */}
-                  <td className="p-4 text-right text-gray-700">
-                    ₨ {Number(item.salePrice).toFixed(2)}
-                  </td>
-
                   {/* Quantity Counter */}
-                  <td className="p-4">
+                  <td className="px-6 py-4">
                     <div className="flex flex-col items-center gap-1">
-                      <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm">
-                        
-                        {/* Minus */}
+                      <div className="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-200 shadow-sm group-hover:border-blue-200 group-hover:shadow-md transition-all">
                         <button
-                          onClick={() => {
-                            onUpdateQuantity(item.id, item.quantity - 1);
-                          }}
-                          className="w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-gray-100"
+                          onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                          className="w-7 h-7 flex items-center justify-center rounded-md text-gray-500 hover:bg-white hover:text-red-500 hover:shadow-sm transition-all"
                         >
                           −
                         </button>
-
-                        {/* Quantity */}
                         <input
                           type="number"
                           value={item.quantity}
@@ -97,50 +91,40 @@ const CartItemsCard = ({
                             if (isNaN(val)) return;
                             onUpdateQuantity(item.id, val);
                           }}
-                          className="w-14 h-9 text-center border-x border-gray-200 outline-none focus:bg-blue-50"
+                          className="w-10 text-center bg-transparent font-bold text-gray-800 outline-none text-sm"
                         />
-
-                        {/* Plus */}
                         <button
-                          onClick={() => {
-                            onUpdateQuantity(
-                              item.id,
-                              item.quantity + 1
-                            );
-                          }}
-                          className="w-9 h-9 flex items-center justify-center text-gray-600 hover:bg-gray-100"
+                          onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                          className="w-7 h-7 flex items-center justify-center rounded-md text-gray-500 hover:bg-white hover:text-green-600 hover:shadow-sm transition-all"
                         >
                           +
                         </button>
                       </div>
 
-                      {/* Stock Warning */}
                       {item.quantity < 0 && (
-                          <span className="text-xs text-red-500">
-                            Refund: {Math.abs(item.quantity)}
-                          </span>
-                        )}
-                      {item.stock != null &&
-                        item.quantity > 0 &&
-                        item.quantity >= item.stock && (
-                          <span className="text-xs text-red-500">
-                            Max available reached
-                          </span>
-                        )}
+                        <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 rounded">Refund</span>
+                      )}
+                      {item.stock != null && item.quantity >= item.stock && item.quantity > 0 && (
+                        <span className="text-[10px] font-bold text-orange-500 bg-orange-50 px-1.5 rounded">Max</span>
+                      )}
                     </div>
                   </td>
 
+                  {/* Price */}
+                  <td className="px-6 py-4 text-right text-gray-500 font-medium font-mono">
+                    {Number(item.salePrice).toFixed(2)}
+                  </td>
+
                   {/* Row Total */}
-                  <td className="p-4 text-right font-medium text-gray-800">
-                    ₨{" "}
+                  <td className="px-6 py-4 text-right font-bold text-gray-900 font-mono text-base">
                     {(Number(item.salePrice) * item.quantity).toFixed(2)}
                   </td>
 
                   {/* Remove */}
-                  <td className="p-4 text-right">
+                  <td className="px-4 py-4 text-right">
                     <button
                       onClick={() => onRemoveItem(item.id)}
-                      className="h-9 w-9 flex items-center justify-center rounded-md text-red-600 hover:bg-red-50 transition"
+                      className="p-2 rounded-lg text-gray-300 hover:text-red-600 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -153,78 +137,64 @@ const CartItemsCard = ({
       </div>
 
       {/* Footer */}
-      <div className="p-6 border-t border-gray-200 space-y-4 bg-gray-50">
-        
-        {/* Discount Buttons */}
-        <div className="flex gap-2 items-center">
-          <span className="text-sm font-medium text-gray-700">Discount:</span>
-          <button
-            onClick={() => onDiscountChange(0)}
-            className={`px-3 py-1 rounded text-sm font-medium transition ${
-              discount === 0
-                ? 'bg-blue-600 text-white'
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            None
-          </button>
-          <button
-            onClick={() => onDiscountChange(5)}
-            className={`px-3 py-1 rounded text-sm font-medium transition ${
-              discount === 5
-                ? 'bg-blue-600 text-white'
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            5%
-          </button>
-          <button
-            onClick={() => onDiscountChange(10)}
-            className={`px-3 py-1 rounded text-sm font-medium transition ${
-              discount === 10
-                ? 'bg-blue-600 text-white'
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            10%
-          </button>
+      <div className="p-6 border-t border-gray-100 bg-white space-y-5 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] z-20">
+
+        {/* Discount Section */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-gray-500">Discount</span>
+          <div className="flex bg-gray-100 p-1 rounded-lg">
+            {[0, 5, 10].map((val) => (
+              <button
+                key={val}
+                onClick={() => onDiscountChange(val)}
+                className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${discount === val
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                  }`}
+              >
+                {val === 0 ? 'None' : `${val}%`}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Totals */}
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between text-gray-700">
-            <span>Subtotal:</span>
-            <span>₨ {subtotal.toFixed(2)}</span>
+        <div className="space-y-2">
+          <div className="flex justify-between text-gray-500 text-sm">
+            <span>Subtotal</span>
+            <span className="font-mono">{subtotal.toFixed(2)}</span>
           </div>
           {discount > 0 && (
-            <div className="flex justify-between text-red-600 font-medium">
-              <span>Discount ({discount}%):</span>
-              <span>-₨ {discountAmount.toFixed(2)}</span>
+            <div className="flex justify-between text-red-500 text-sm font-medium">
+              <span>Discount</span>
+              <span className="font-mono">-{discountAmount.toFixed(2)}</span>
             </div>
           )}
-          <div className="flex justify-between font-bold text-lg text-gray-900 pt-2 border-t">
-            <span>Total:</span>
-            <span>₨ {total.toFixed(2)}</span>
-          </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex items-center justify-between gap-3">
-          <button
-            onClick={onClearCart}
-            disabled={cart.length === 0}
-            className="border border-gray-300 bg-white px-4 h-10 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Clear Cart
-          </button>
-
-          <button
-            onClick={onCheckout}
-            disabled={cart.length === 0}
-            className="bg-green-600 text-white px-6 h-10 rounded-md font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-          >
-            Checkout
-          </button>
+        <div className="flex items-end justify-between pt-2 border-t border-gray-100">
+          <div>
+            <span className="block text-xs text-gray-400 font-medium uppercase tracking-wide">Total Amount</span>
+            <span className="block text-3xl font-black text-gray-900 tracking-tight mt-0.5">
+              <span className="text-xl align-top opacity-50 font-medium mr-1">₨</span>
+              {total.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={onClearCart}
+              disabled={cart.length === 0}
+              className="px-4 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              Clear
+            </button>
+            <button
+              onClick={onCheckout}
+              disabled={cart.length === 0}
+              className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-black hover:shadow-lg hover:shadow-gray-900/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              Checkout <span className="text-gray-400 text-lg">→</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

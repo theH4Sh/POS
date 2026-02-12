@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Save, SquarePen, X } from "lucide-react";
 
 const inputClass =
@@ -31,9 +31,7 @@ function formFromProduct(product) {
 export default function EditProductModal({ isOpen, product, onClose, onSuccess }) {
   const [form, setForm] = useState(() => formFromProduct(product));
 
-  useEffect(() => {
-    if (product) setForm(formFromProduct(product));
-  }, [product]);
+
 
   if (!isOpen) return null;
 

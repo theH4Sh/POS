@@ -2,8 +2,6 @@ import { useState } from "react";
 import { User, Lock, X, Check, Eye, EyeOff } from "lucide-react";
 
 export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess }) {
-    if (!isOpen) return null;
-
     const [currentPassword, setCurrentPassword] = useState("");
     const [newUsername, setNewUsername] = useState(user?.username || "");
     const [newPassword, setNewPassword] = useState("");
@@ -12,6 +10,8 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [message, setMessage] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    if (!isOpen) return null;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -171,8 +171,8 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
                     {message && (
                         <div
                             className={`p-3 rounded-lg text-sm font-medium flex items-center gap-2 ${message.type === "success"
-                                    ? "bg-green-50 text-green-700 border border-green-200"
-                                    : "bg-red-50 text-red-700 border border-red-200"
+                                ? "bg-green-50 text-green-700 border border-green-200"
+                                : "bg-red-50 text-red-700 border border-red-200"
                                 }`}
                         >
                             {message.type === "success" && <Check className="h-4 w-4" />}

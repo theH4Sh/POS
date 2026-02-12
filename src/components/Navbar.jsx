@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { ShoppingCart, ListFilter, TrendingUp, LogOut, Lock, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ProfileModal from "./ProfileModal";
 
 export const Navbar = ({ user, onLogout }) => {
