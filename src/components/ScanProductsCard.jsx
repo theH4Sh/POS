@@ -18,12 +18,17 @@ const ScanProductsCard = ({ onProductScanned }) => {
 
     try {
       const products = await window.api.searchProduct(barcode);
+      const mappedProducts = products.map(p => ({
+        ...p,
+        stock: Number.isFinite(p.quantity) ? p.quantity : 0
+      }));
 
-      if (products.length === 1) {
-        onProductScanned(products[0]);
+      if (mappedProducts.length === 1) {
+        onProductScanned(mappedProducts[0]);
         setBarcode("");
-      } else if (products.length > 1) {
-        setResults(products);
+        setHoveredProduct(null);
+      } else if (mappedProducts.length > 1) {
+        setResults(mappedProducts);
       } else {
         setError("Product not found");
       }
@@ -45,8 +50,12 @@ const ScanProductsCard = ({ onProductScanned }) => {
       const products = await window.api.searchProduct(searchQuery);
 
       if (products.length > 0) {
-        setResults(products);
-        console.log("Search results:", products);
+        const mappedProducts = products.map(p => ({
+          ...p,
+          stock: Number.isFinite(p.quantity) ? p.quantity : 0
+        }));
+        setResults(mappedProducts);
+        console.log("Search results:", mappedProducts);
       } else {
         setError("No products found");
         setResults([]);
@@ -62,6 +71,7 @@ const ScanProductsCard = ({ onProductScanned }) => {
     onProductScanned(product);
     setResults([]);
     setSearchQuery("");
+    setHoveredProduct(null);
   };
 
   // Tooltip state
