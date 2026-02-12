@@ -195,7 +195,7 @@ const Dashboard = ({ user }) => {
           <StatCard
             icon={DollarSign}
             label="Total Revenue"
-            value={`$${Number(stats.totalRevenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+            value={`Rs ${Number(stats.totalRevenue)}`}
             subtext="Gross income from sales"
             color="border-green-500"
             trend={{ positive: true, value: 12.5 }}
@@ -203,7 +203,7 @@ const Dashboard = ({ user }) => {
           <StatCard
             icon={ShoppingCart}
             label="Cost of Goods"
-            value={`$${Number(stats.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+            value={`Rs ${Number(stats.totalCost)}`}
             subtext="Inventory purchase expenses"
             color="border-amber-500"
             trend={{ positive: false, value: 4.2 }}
@@ -211,7 +211,7 @@ const Dashboard = ({ user }) => {
           <StatCard
             icon={TrendingUp}
             label="Net Profit"
-            value={`$${Number(stats.profit).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+            value={`Rs ${Number(stats.profit)}`}
             subtext={stats.profit >= 0 ? "Profitable Period" : "Below Baseline"}
             color={stats.profit >= 0 ? "border-blue-600" : "border-red-500"}
             trend={{ positive: stats.profit >= 0, value: 8.1 }}
@@ -273,7 +273,7 @@ const Dashboard = ({ user }) => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-black text-green-600">${Number(product.revenue).toLocaleString()}</p>
+                        <p className="text-lg font-black text-green-600">Rs {Number(product.revenue)}</p>
                         <div className="w-20 h-1 bg-gray-100 rounded-full mt-1.5 overflow-hidden">
                           <div className="h-full bg-green-500" style={{ width: `${Math.min(100, (product.revenue / stats.totalRevenue) * 500)}%` }}></div>
                         </div>
@@ -306,11 +306,11 @@ const Dashboard = ({ user }) => {
               <div className="grid grid-cols-2 gap-6">
                 <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Inflow</p>
-                  <p className="text-2xl font-black text-green-400 tracking-tight">+${Number(stats.totalRevenue).toLocaleString()}</p>
+                  <p className="text-2xl font-black text-green-400 tracking-tight">Rs {Number(stats.totalRevenue)}</p>
                 </div>
                 <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Inventory Outflow</p>
-                  <p className="text-2xl font-black text-amber-400 tracking-tight">-${Number(stats.totalCost).toLocaleString()}</p>
+                  <p className="text-2xl font-black text-amber-400 tracking-tight">- Rs {Number(stats.totalCost)}</p>
                 </div>
               </div>
 
@@ -320,7 +320,7 @@ const Dashboard = ({ user }) => {
 
                 <p className="text-xs font-black uppercase tracking-[0.2em] mb-4 relative z-10">Net Performance Profit</p>
                 <p className={`text-6xl font-black tracking-tighter relative z-10 ${stats.profit >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
-                  {stats.profit >= 0 ? '+' : ''}${Math.abs(Number(stats.profit)).toLocaleString()}
+                  {stats.profit >= 0 ? '+' : ''}Rs {Math.abs(Number(stats.profit)).toLocaleString()}
                 </p>
                 <div className="mt-6 flex items-center gap-3 relative z-10">
                   <div className={`px-4 py-1.5 rounded-full text-[12px] font-black uppercase border ${stats.profit >= 0 ? 'bg-blue-500/20 border-blue-400 text-blue-300' : 'bg-red-500/20 border-red-400 text-red-300'}`}>
@@ -363,7 +363,7 @@ const Dashboard = ({ user }) => {
                 <tr className="bg-gray-50/50">
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Audit ID</th>
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Itemized Manifest</th>
-                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Transaction Value</th>
+                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Amount</th>
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Timestamp</th>
                 </tr>
               </thead>
@@ -388,7 +388,7 @@ const Dashboard = ({ user }) => {
                         </div>
                       </td>
                       <td className="px-8 py-5">
-                        <span className="text-base font-black text-green-600">${Number(order.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <span className={`text-base font-black ${order.total > 0 ? 'text-green-600' : 'text-red-600'}`}>{Number(order.total)} PKR </span>
                       </td>
                       <td className="px-8 py-5">
                         <div className="flex items-center gap-3">
