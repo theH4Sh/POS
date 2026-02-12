@@ -56,6 +56,25 @@ export default function AdminPanel({ user, onLogout }) {
     }
   };
 
+  const handleDeleteCashier = async (cashier) => {
+    if (!window.confirm(`Are you sure you want to revoke access for '${cashier.username}'?`)) {
+      return;
+    }
+
+    try {
+      const result = await window.api.deleteCashier(cashier.id);
+      if (result.success) {
+        toast.success(result.message);
+        loadCashiers();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (err) {
+      toast.error("Failed to delete account");
+      console.error(err);
+    }
+  };
+
   const handleLogout = async () => {
     await window.api.logout();
     onLogout();
@@ -190,6 +209,7 @@ export default function AdminPanel({ user, onLogout }) {
                           </div>
                         </div>
                         <button
+                          onClick={() => handleDeleteCashier(cashier)}
                           className="p-3 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100 opacity-0 group-hover:opacity-100"
                           title="Revoke access"
                         >

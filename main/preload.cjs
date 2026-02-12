@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld("api", {
   getCurrentUser: () => ipcRenderer.invoke("auth:getCurrentUser"),
   registerCashier: (username, password) => ipcRenderer.invoke("auth:registerCashier", { username, password }),
   getCashiers: () => ipcRenderer.invoke("auth:getCashiers"),
+  deleteCashier: (id) => ipcRenderer.invoke("auth:deleteCashier", id),
   updateProfile: (data) => ipcRenderer.invoke("auth:updateProfile", data),
 
   // Medicine

@@ -148,6 +148,30 @@ ipcMain.handle("auth:getCashiers", () => {
   }
 });
 
+// Delete cashier (admin only)
+ipcMain.handle("auth:deleteCashier", async (_, id) => {
+  try {
+    if (!currentUser || currentUser.role !== "admin") {
+      return { success: false, message: "Unauthorized - admin only" };
+    }
+
+    // Check if user exists and is a cashier
+    const user = db.prepare(`SELECT * FROM users WHERE id = ?`).get(id);
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+    if (user.role !== "cashier") {
+      return { success: false, message: "Cannot delete administrators" };
+    }
+
+    db.prepare(`DELETE FROM users WHERE id = ?`).run(id);
+    return { success: true, message: `Account '${user.username}' revoked successfully` };
+  } catch (err) {
+    console.error("Delete cashier error:", err);
+    return { success: false, message: "Failed to revoke access" };
+  }
+});
+
 // Add product
 ipcMain.handle("medicine:add", (_, data) => {
   try {
