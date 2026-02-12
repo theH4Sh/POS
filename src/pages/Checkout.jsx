@@ -172,88 +172,101 @@ const Checkout = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-      {/* Left / Main Column */}
-      <div className="md:col-span-2 space-y-6">
-        {/* Cart Tabs - Modern Segmented Control */}
-        <div className="flex items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-gray-200">
-          <div className="flex gap-1 overflow-x-auto no-scrollbar mask-gradient">
-            {carts.map((cartItems, index) => (
-              <div
-                key={index}
-                className={`relative group flex items-center pr-2 rounded-xl transition-all duration-300 ease-out cursor-pointer select-none ${activeCartIndex === index
-                  ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-200'
-                  : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                onClick={() => switchCart(index)}
-              >
-                <div className="px-4 py-2.5 font-semibold text-sm whitespace-nowrap">
-                  Customer {index + 1}
-                </div>
-
-                {cartItems.length > 0 && (
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full mr-1 transition-colors ${activeCartIndex === index
-                    ? 'bg-white text-blue-600'
-                    : 'bg-gray-200 text-gray-600 group-hover:bg-gray-300'
-                    }`}>
-                    {cartItems.length}
-                  </span>
-                )}
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteCart(index);
-                  }}
-                  className={`p-1.5 rounded-full mr-1 transition-all opacity-0 group-hover:opacity-100 ${activeCartIndex === index
-                    ? 'hover:bg-blue-500 text-white opacity-80'
-                    : 'hover:bg-red-100 text-gray-400 hover:text-red-600'
+    <div className="flex flex-col gap-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+      {/* Top Section: Cart and Lookup */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Col: Cart (Larger) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Cart Tabs - Modern Segmented Control */}
+          <div className="flex items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-gray-200">
+            <div className="flex gap-1 overflow-x-auto no-scrollbar mask-gradient">
+              {carts.map((cartItems, index) => (
+                <div
+                  key={index}
+                  className={`relative group flex items-center pr-2 rounded-xl transition-all duration-300 ease-out cursor-pointer select-none ${activeCartIndex === index
+                    ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-200'
+                    : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                     }`}
-                  title={carts.length > 1 ? "Delete cart" : "Clear cart"}
+                  onClick={() => switchCart(index)}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ))}
+                  <div className="px-4 py-2.5 font-semibold text-sm whitespace-nowrap">
+                    Customer {index + 1}
+                  </div>
+
+                  {cartItems.length > 0 && (
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full mr-1 transition-colors ${activeCartIndex === index
+                      ? 'bg-white text-blue-600'
+                      : 'bg-gray-200 text-gray-600 group-hover:bg-gray-300'
+                      }`}>
+                      {cartItems.length}
+                    </span>
+                  )}
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteCart(index);
+                    }}
+                    className={`p-1.5 rounded-full mr-1 transition-all opacity-0 group-hover:opacity-100 ${activeCartIndex === index
+                      ? 'hover:bg-blue-500 text-white opacity-80'
+                      : 'hover:bg-red-100 text-gray-400 hover:text-red-600'
+                      }`}
+                    title={carts.length > 1 ? "Delete cart" : "Clear cart"}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="pl-4 border-l border-gray-100 ml-2">
+              <button
+                onClick={addNewCart}
+                className="flex items-center justify-center h-10 w-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 hover:scale-105 active:scale-95 transition-all shadow-sm border border-blue-100"
+                title="New Customer"
+              >
+                <Plus className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
-          <div className="pl-4 border-l border-gray-100 ml-2">
-            <button
-              onClick={addNewCart}
-              className="flex items-center justify-center h-10 w-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 hover:scale-105 active:scale-95 transition-all shadow-sm border border-blue-100"
-              title="New Customer"
-            >
-              <Plus className="h-5 w-5" />
-            </button>
-          </div>
+          <CartItemsCard
+            cart={cart}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveItem={handleRemoveItem}
+            onClearCart={handleClearCart}
+            onCheckout={handleCheckout}
+            discount={discount}
+            onDiscountChange={setDiscount}
+          />
         </div>
 
-        <ScanProductsCard onProductScanned={handleProductScanned} />
-        <CartItemsCard
-          cart={cart}
-          onUpdateQuantity={handleUpdateQuantity}
-          onRemoveItem={handleRemoveItem}
-          onClearCart={handleClearCart}
-          onCheckout={handleCheckout}
-          discount={discount}
-          onDiscountChange={setDiscount}
-        />
+        {/* Right Col: Lookup (Smaller/Narrower) */}
+        <div className="lg:col-span-1 space-y-6">
+          <ScanProductsCard onProductScanned={handleProductScanned} />
+          {checkoutMessage && (
+            <div
+              className={`p-4 rounded-xl border-2 shadow-sm animate-in fade-in slide-in-from-top-2 ${checkoutMessage.startsWith("✓")
+                ? "bg-green-50 border-green-100 text-green-700 font-bold"
+                : "bg-red-50 border-red-100 text-red-700 font-bold"
+                }`}
+            >
+              {checkoutMessage}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Right Column */}
-      <div className="space-y-6">
+      {/* Bottom Section: Receipt and Alerts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-200 pt-8 mt-4">
         <ReceiptCard cart={cart} lastOrder={lastOrder} discount={discount} />
-        {checkoutMessage && (
-          <div
-            className={`p-4 rounded-lg border ${checkoutMessage.startsWith("✓")
-              ? "bg-green-50 border-green-200 text-green-700"
-              : "bg-red-50 border-red-200 text-red-700"
-              }`}
-          >
-            {checkoutMessage}
-          </div>
-        )}
-        <LowStockAlerts />
+        <div className="space-y-6">
+          <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+            Inventory Insights
+          </h3>
+          <LowStockAlerts />
+        </div>
       </div>
     </div>
   );
