@@ -60,8 +60,8 @@ export default function EditProductModal({ isOpen, product, onClose, onSuccess }
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto animate-in fade-in duration-300">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-100 overflow-y-auto animate-in fade-in duration-300">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full my-8 max-h-[85vh] overflow-y-auto animate-in zoom-in-95 duration-300">
         <div className="sticky top-0 bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 p-6 flex items-center justify-between z-10">
           <div className="flex items-center gap-3">
             <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
@@ -143,12 +143,12 @@ export default function EditProductModal({ isOpen, product, onClose, onSuccess }
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block ml-1">Buy Price</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">Rs</span>
                   <input
                     className={`${inputClass} pl-8 !bg-white !border-gray-200 focus:!border-blue-500 font-mono`}
-                    placeholder="0.00"
+                    placeholder="0"
                     type="number"
-                    step="0.01"
+                    step="1"
                     value={form.purchasePrice}
                     onChange={(e) => update("purchasePrice", e.target.value)}
                   />
@@ -157,12 +157,12 @@ export default function EditProductModal({ isOpen, product, onClose, onSuccess }
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block ml-1">Sell Price</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500 font-bold">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 font-bold">Rs</span>
                   <input
                     className={`${inputClass} pl-8 !bg-blue-50/50 !border-blue-100 focus:!border-blue-500 font-mono text-blue-700 font-bold`}
-                    placeholder="0.00"
+                    placeholder="0"
                     type="number"
-                    step="0.01"
+                    step="1"
                     value={form.salePrice}
                     onChange={(e) => update("salePrice", e.target.value)}
                   />
