@@ -86,11 +86,10 @@ export default function Login({ onLogin }) {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 rounded-lg font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 ${
-                loading
+              className={`w-full py-3 rounded-lg font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 ${loading
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl"
-              }`}
+                }`}
             >
               <LogIn className="h-5 w-5" />
               {loading ? "Signing in..." : "Sign In"}
