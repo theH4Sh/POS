@@ -36,12 +36,12 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
       </div>
 
       {/* RECEIPT CONTENT CONTAINER */}
-      <div className="flex-1 overflow-auto custom-scrollbar p-6 flex justify-center bg-gray-100">
+      <div className="flex-1 overflow-auto custom-scrollbar p-6 flex justify-center items-start bg-gray-100">
 
         {/* THE RECEIPT PAPER */}
         <div
           id="print-area"
-          className="bg-white w-full max-w-[320px] shadow-sm text-gray-900 font-mono text-xs relative flex flex-col shrink-0"
+          className="bg-white w-full max-w-[320px] shadow-sm text-gray-900 font-mono text-xs relative flex flex-col shrink-0 h-fit min-h-full"
           style={{
             filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))',
           }}

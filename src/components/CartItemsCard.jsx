@@ -1,4 +1,5 @@
 import { ShoppingCart, Trash2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 const CartItemsCard = ({
   cart,
@@ -9,6 +10,14 @@ const CartItemsCard = ({
   discount = 0,
   onDiscountChange = () => { },
 }) => {
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (cart.length > 0) {
+      scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [cart.length]);
+
   const subtotal = cart.reduce(
     (acc, item) => acc + Number(item.salePrice) * item.quantity,
     0
@@ -134,6 +143,7 @@ const CartItemsCard = ({
             </tbody>
           </table>
         )}
+        <div ref={scrollRef} />
       </div>
 
       {/* Footer */}
