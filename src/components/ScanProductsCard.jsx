@@ -1,5 +1,6 @@
 import { Barcode, Search, AlertCircle, Loader } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "react-hot-toast";
 
 const ScanProductsCard = ({ onProductScanned }) => {
@@ -78,10 +79,13 @@ const ScanProductsCard = ({ onProductScanned }) => {
 
   return (
     <>
-      {hoveredProduct && (
+      {hoveredProduct && createPortal(
         <div
-          className="fixed z-[100] bg-gray-900 text-white p-3 rounded-xl shadow-2xl text-sm pointer-events-none max-w-xs animate-in fade-in duration-150"
-          style={{ top: mousePos.y + 15, left: mousePos.x + 15 }}
+          className="fixed z-[1000] bg-gray-900 text-white p-3 rounded-xl shadow-2xl text-sm pointer-events-none max-w-xs animate-in fade-in duration-150 border border-gray-700"
+          style={{
+            top: Math.min(mousePos.y + 15, window.innerHeight - 150),
+            left: Math.min(mousePos.x + 15, window.innerWidth - 250)
+          }}
         >
           <p className="font-bold border-b border-gray-700 pb-1 mb-1 text-blue-300">{hoveredProduct.name}</p>
           <p className="text-gray-200 mb-1 leading-relaxed">
@@ -91,7 +95,8 @@ const ScanProductsCard = ({ onProductScanned }) => {
             <span>{hoveredProduct.category || "Uncategorized"}</span>
             <span className="font-mono bg-gray-800 px-1 rounded">{hoveredProduct.stock || 0} in stock</span>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <div className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden flex flex-col h-[600px] relative">

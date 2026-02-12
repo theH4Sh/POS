@@ -1,5 +1,6 @@
 import { SquarePen, TriangleAlert, Trash2, ListFilter } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 export default function InventoryTable({ products, onEditProduct, onDeleteProduct, canEdit = false }) {
   // Tooltip state
@@ -8,10 +9,13 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-sm relative border-separate">
-      {hoveredProduct && (
+      {hoveredProduct && createPortal(
         <div
-          className="fixed z-[100] bg-gray-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl text-sm pointer-events-none max-w-xs animate-in fade-in zoom-in-95 duration-150"
-          style={{ top: mousePos.y + 20, left: mousePos.x + 20 }}
+          className="fixed z-[1000] bg-gray-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl text-sm pointer-events-none max-w-xs animate-in fade-in zoom-in-95 duration-150 border border-white/10"
+          style={{
+            top: Math.min(mousePos.y + 15, window.innerHeight - 180),
+            left: Math.min(mousePos.x + 15, window.innerWidth - 280)
+          }}
         >
           <div className="flex items-center gap-2 mb-2 border-b border-white/10 pb-2">
             <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
@@ -24,7 +28,8 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
             <span className="font-bold uppercase">{hoveredProduct.category || "General"}</span>
             <span className="font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">{hoveredProduct.stock || 0} IN STOCK</span>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <div className="overflow-auto max-h-[600px] custom-scrollbar">
