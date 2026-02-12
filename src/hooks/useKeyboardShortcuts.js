@@ -56,11 +56,13 @@ export default function useKeyboardShortcuts(actions = {}) {
                 // Cart operations (skip if typing in an input)
                 case "n":
                 case "N":
-                    if (!isTyping && actions.newCart) { actions.newCart(); matched = true; }
+                    // if (!isTyping && actions.newCart) { actions.newCart(); matched = true; }
+                    if (actions.newCart) { actions.newCart(); matched = true; }
                     break;
                 case "w":
                 case "W":
-                    if (!isTyping && actions.deleteCart) { actions.deleteCart(); matched = true; }
+                    // if (!isTyping && actions.deleteCart) { actions.deleteCart(); matched = true; }
+                    if (actions.deleteCart) { actions.deleteCart(); matched = true; }
                     break;
 
                 // Checkout
