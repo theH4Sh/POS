@@ -1,11 +1,53 @@
-import { SquarePen, TriangleAlert, Trash2, ListFilter } from "lucide-react";
-import { useState } from "react";
+import { SquarePen, TriangleAlert, Trash2, ListFilter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 
 export default function InventoryTable({ products, onEditProduct, onDeleteProduct, canEdit = false }) {
   // Tooltip state
   const [hoveredProduct, setHoveredProduct] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  // Sorting state
+  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+
+  const sortedProducts = useMemo(() => {
+    let sortableItems = [...products];
+    if (sortConfig.key !== null) {
+      sortableItems.sort((a, b) => {
+        let aVal = a[sortConfig.key];
+        let bVal = b[sortConfig.key];
+
+        // Handle numeric sorting for stock and price
+        if (['stock', 'salePrice', 'purchasePrice'].includes(sortConfig.key)) {
+          aVal = Number(aVal) || 0;
+          bVal = Number(bVal) || 0;
+        } else if (typeof aVal === 'string') {
+          aVal = aVal.toLowerCase();
+          bVal = bVal.toLowerCase();
+        }
+
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [products, sortConfig]);
+
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const SortIcon = ({ columnKey }) => {
+    if (sortConfig.key !== columnKey) return <ArrowUpDown className="h-3 w-3 ml-1.5 opacity-30 group-hover:opacity-100 transition-opacity" />;
+    return sortConfig.direction === 'asc' ?
+      <ArrowUp className="h-3 w-3 ml-1.5 text-blue-600" /> :
+      <ArrowDown className="h-3 w-3 ml-1.5 text-blue-600" />;
+  };
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-sm relative border-separate">
@@ -36,16 +78,36 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
         <table className="w-full text-sm border-collapse">
           <thead className="sticky top-0 z-20">
             <tr className="bg-gray-50/80 backdrop-blur-md border-b border-gray-100">
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Barcode</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Product Information</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Price (Buy/Sell)</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Stock Details</th>
+              <th
+                className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest cursor-pointer group hover:text-blue-600 transition-colors"
+                onClick={() => requestSort('barcode')}
+              >
+                <div className="flex items-center">Barcode <SortIcon columnKey="barcode" /></div>
+              </th>
+              <th
+                className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest cursor-pointer group hover:text-blue-600 transition-colors"
+                onClick={() => requestSort('name')}
+              >
+                <div className="flex items-center">Product Information <SortIcon columnKey="name" /></div>
+              </th>
+              <th
+                className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-widest cursor-pointer group hover:text-blue-600 transition-colors"
+                onClick={() => requestSort('salePrice')}
+              >
+                <div className="flex items-center justify-center text-center">Price (S/B) <SortIcon columnKey="salePrice" /></div>
+              </th>
+              <th
+                className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-widest cursor-pointer group hover:text-blue-600 transition-colors"
+                onClick={() => requestSort('stock')}
+              >
+                <div className="flex items-center justify-center">Stock <SortIcon columnKey="stock" /></div>
+              </th>
               <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {products.length > 0 ? (
-              products.map((p) => (
+            {sortedProducts.length > 0 ? (
+              sortedProducts.map((p) => (
                 <tr
                   key={p.id}
                   className="group hover:bg-blue-50/40 transition-all duration-200 cursor-default"

@@ -15,6 +15,7 @@ const Inventory = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'in-stock', 'low-stock', 'out-of-stock'
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const isAdmin = user?.role === "admin";
 
@@ -45,7 +46,10 @@ const Inventory = () => {
       (statusFilter === "low-stock" && p.stock > 0 && p.stock < 20) ||
       (statusFilter === "out-of-stock" && p.stock === 0);
 
-    return matchesSearch && matchesStatus;
+    const matchesCategory =
+      categoryFilter === "all" || p.category === categoryFilter;
+
+    return matchesSearch && matchesStatus && matchesCategory;
   });
 
   const stats = {
@@ -53,6 +57,12 @@ const Inventory = () => {
     inStock: products.filter((p) => p.stock >= 20).length,
     lowStock: products.filter((p) => p.stock > 0 && p.stock < 20).length,
     outOfStock: products.filter((p) => p.stock === 0).length,
+    categories: {
+      medicine: products.filter((p) => p.category === "medicine").length,
+      cosmetics: products.filter((p) => p.category === "cosmetics").length,
+      supplements: products.filter((p) => p.category === "supplements").length,
+      "medical-devices": products.filter((p) => p.category === "medical-devices").length,
+    }
   };
 
   const handleDelete = async (product) => {
@@ -133,8 +143,49 @@ const Inventory = () => {
               </button>
             </div>
 
-            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
-              <InventorySearch value={search} onChange={setSearch} />
+            <div className="flex flex-col md:flex-row gap-6 items-end bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+              <div className="flex-1 w-full">
+                <InventorySearch value={search} onChange={setSearch} />
+              </div>
+
+              <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-gray-200 shadow-sm overflow-x-auto no-scrollbar">
+                <span className="text-[10px] font-black uppercase text-gray-400 px-3 tracking-widest border-r border-gray-100 mr-1 shrink-0">Category</span>
+                <button
+                  onClick={() => setCategoryFilter("all")}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${categoryFilter === 'all' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  All
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${categoryFilter === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'}`}>{stats.total}</span>
+                </button>
+                <button
+                  onClick={() => setCategoryFilter("medicine")}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${categoryFilter === 'medicine' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  Medicine
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${categoryFilter === 'medicine' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'}`}>{stats.categories.medicine}</span>
+                </button>
+                <button
+                  onClick={() => setCategoryFilter("cosmetics")}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${categoryFilter === 'cosmetics' ? 'bg-pink-600 text-white shadow-md shadow-pink-100' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  Cosmetics
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${categoryFilter === 'cosmetics' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'}`}>{stats.categories.cosmetics}</span>
+                </button>
+                <button
+                  onClick={() => setCategoryFilter("supplements")}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${categoryFilter === 'supplements' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-100' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  Supplements
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${categoryFilter === 'supplements' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'}`}>{stats.categories.supplements}</span>
+                </button>
+                <button
+                  onClick={() => setCategoryFilter("medical-devices")}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${categoryFilter === 'medical-devices' ? 'bg-amber-600 text-white shadow-md shadow-amber-100' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  Equipment
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${categoryFilter === 'medical-devices' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'}`}>{stats.categories["medical-devices"]}</span>
+                </button>
+              </div>
             </div>
 
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
