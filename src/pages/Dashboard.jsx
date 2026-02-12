@@ -323,8 +323,8 @@ const Dashboard = ({ user }) => {
                   {stats.profit >= 0 ? '+' : ''}Rs {Math.abs(Number(stats.profit)).toLocaleString()}
                 </p>
                 <div className="mt-6 flex items-center gap-3 relative z-10">
-                  <div className={`px-4 py-1.5 rounded-full text-[12px] font-black uppercase border ${stats.profit >= 0 ? 'bg-blue-500/20 border-blue-400 text-blue-300' : 'bg-red-500/20 border-red-400 text-red-300'}`}>
-                    {stats.totalRevenue > 0 ? ((stats.profit / stats.totalRevenue) * 100).toFixed(1) : 0}% Margin
+                  <div className={`px-4 py-1.5 rounded-full text-[12px] font-black uppercase border ${stats.profit >= 0 ? 'bg-blue-50/20 border-blue-400 text-blue-300' : 'bg-red-500/20 border-red-400 text-red-300'}`}>
+                    {stats.totalRevenue > 0 ? Math.round((stats.profit / stats.totalRevenue) * 100) : 0}% Margin
                   </div>
                 </div>
               </div>

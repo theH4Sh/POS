@@ -115,14 +115,13 @@ const Checkout = () => {
       return;
     }
 
-    const total = cart
-      .reduce((acc, item) => acc + parseFloat(item.salePrice) * item.quantity, 0)
-      .toFixed(2);
+    const total = Math.round(cart
+      .reduce((acc, item) => acc + parseFloat(item.salePrice) * item.quantity, 0));
 
-    const discountAmount = (parseFloat(total) * discount / 100).toFixed(2);
-    const finalTotal = (parseFloat(total) - parseFloat(discountAmount)).toFixed(2);
+    const discountAmount = Math.round(total * discount / 100);
+    const finalTotal = total - discountAmount;
 
-    const isRefund = parseFloat(finalTotal) < 0;
+    const isRefund = finalTotal < 0;
 
     // Only validate stock for positive transactions
     if (!isRefund) {
@@ -176,8 +175,8 @@ const Checkout = () => {
               <div
                 key={index}
                 className={`relative group flex items-center pr-2 rounded-xl transition-all duration-300 ease-out cursor-pointer select-none ${activeCartIndex === index
-                    ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-200'
-                    : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-200'
+                  : 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 onClick={() => switchCart(index)}
               >
@@ -187,8 +186,8 @@ const Checkout = () => {
 
                 {cartItems.length > 0 && (
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full mr-1 transition-colors ${activeCartIndex === index
-                      ? 'bg-white text-blue-600'
-                      : 'bg-gray-200 text-gray-600 group-hover:bg-gray-300'
+                    ? 'bg-white text-blue-600'
+                    : 'bg-gray-200 text-gray-600 group-hover:bg-gray-300'
                     }`}>
                     {cartItems.length}
                   </span>
@@ -201,8 +200,8 @@ const Checkout = () => {
                       deleteCart(index);
                     }}
                     className={`p-1.5 rounded-full mr-1 transition-all opacity-60 hover:opacity-100 ${activeCartIndex === index
-                        ? 'hover:bg-blue-500 text-white'
-                        : 'hover:bg-red-100 text-gray-400 hover:text-red-600'
+                      ? 'hover:bg-blue-500 text-white'
+                      : 'hover:bg-red-100 text-gray-400 hover:text-red-600'
                       }`}
                     title="Close cart"
                   >
@@ -242,8 +241,8 @@ const Checkout = () => {
         {checkoutMessage && (
           <div
             className={`p-4 rounded-lg border ${checkoutMessage.startsWith("✓")
-                ? "bg-green-50 border-green-200 text-green-700"
-                : "bg-red-50 border-red-200 text-red-700"
+              ? "bg-green-50 border-green-200 text-green-700"
+              : "bg-red-50 border-red-200 text-red-700"
               }`}
           >
             {checkoutMessage}

@@ -201,7 +201,7 @@ const ScanProductsCard = ({ onProductScanned }) => {
                       </div>
                       <div className="text-right">
                         <div className="text-base font-bold text-indigo-600 font-mono">
-                          {Number(product.salePrice).toFixed(2)}
+                          {Math.round(Number(product.salePrice))}
                         </div>
                       </div>
                     </div>

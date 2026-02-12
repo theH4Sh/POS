@@ -14,7 +14,7 @@ const CartItemsCard = ({
     0
   );
 
-  const discountAmount = (subtotal * discount / 100);
+  const discountAmount = Math.round(subtotal * discount / 100);
   const total = subtotal - discountAmount;
 
   return (
@@ -112,12 +112,12 @@ const CartItemsCard = ({
 
                   {/* Price */}
                   <td className="px-6 py-4 text-right text-gray-500 font-medium font-mono">
-                    {Number(item.salePrice).toFixed(2)}
+                    {Math.round(Number(item.salePrice))}
                   </td>
 
                   {/* Row Total */}
                   <td className="px-6 py-4 text-right font-bold text-gray-900 font-mono text-base">
-                    {(Number(item.salePrice) * item.quantity).toFixed(2)}
+                    {Math.round(Number(item.salePrice) * item.quantity)}
                   </td>
 
                   {/* Remove */}
@@ -148,8 +148,8 @@ const CartItemsCard = ({
                 key={val}
                 onClick={() => onDiscountChange(val)}
                 className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${discount === val
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-900'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-900'
                   }`}
               >
                 {val === 0 ? 'None' : `${val}%`}
@@ -161,12 +161,12 @@ const CartItemsCard = ({
         <div className="space-y-2">
           <div className="flex justify-between text-gray-500 text-sm">
             <span>Subtotal</span>
-            <span className="font-mono">{subtotal.toFixed(2)}</span>
+            <span className="font-mono">{Math.round(subtotal)}</span>
           </div>
           {discount > 0 && (
             <div className="flex justify-between text-red-500 text-sm font-medium">
               <span>Discount</span>
-              <span className="font-mono">-{discountAmount.toFixed(2)}</span>
+              <span className="font-mono">-{Math.round(discountAmount)}</span>
             </div>
           )}
         </div>
@@ -176,7 +176,7 @@ const CartItemsCard = ({
             <span className="block text-xs text-gray-400 font-medium uppercase tracking-wide">Total Amount</span>
             <span className="block text-3xl font-black text-gray-900 tracking-tight mt-0.5">
               <span className="text-xl align-top opacity-50 font-medium mr-1">₨</span>
-              {total.toFixed(2)}
+              {Math.round(total)}
             </span>
           </div>
           <div className="flex gap-3">

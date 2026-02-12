@@ -12,10 +12,10 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
 
   const displayOrder = lastOrder || {
     items: cart,
-    total: total.toFixed(2),
-    originalTotal: subtotal.toFixed(2),
+    total: Math.round(total),
+    originalTotal: Math.round(subtotal),
     discount: discount,
-    discountAmount: discountAmount.toFixed(2),
+    discountAmount: Math.round(discountAmount),
     date: new Date().toLocaleString(),
     isRefund: total < 0,
   };
@@ -81,10 +81,10 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
                     <div className="flex-1 pr-1 truncate">{item.name}</div>
                     <div className="w-6 text-center text-gray-500">{item.quantity}</div>
                     <div className="w-12 text-right text-gray-500">
-                      {parseFloat(item.salePrice).toFixed(2)}
+                      {Math.round(parseFloat(item.salePrice))}
                     </div>
                     <div className="w-12 text-right font-semibold">
-                      {(parseFloat(item.salePrice) * item.quantity).toFixed(2)}
+                      {Math.round(parseFloat(item.salePrice) * item.quantity)}
                     </div>
                   </div>
                 ))

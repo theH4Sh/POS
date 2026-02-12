@@ -441,9 +441,9 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
 
     return {
       stats: {
-        totalRevenue: totalRevenue.toFixed(2),
-        totalCost: totalCost.toFixed(2),
-        profit: (totalRevenue - totalCost).toFixed(2),
+        totalRevenue: Math.round(totalRevenue),
+        totalCost: Math.round(totalCost),
+        profit: Math.round(totalRevenue - totalCost),
         totalOrders,
         totalProducts: products.length,
         lowStockCount,
