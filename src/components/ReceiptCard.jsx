@@ -41,8 +41,7 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
         {/* THE RECEIPT PAPER */}
         <div
           id="print-area"
-          className="bg-white w-full max-w-[320px] shadow-sm text-gray-900 font-mono text-xs relative flex flex-col shrink-0 h-fit min-h-full"
-          style={{
+          className="bg-white w-full max-w-[320px] shadow-sm text-gray-900 font-mono text-xs relative flex flex-col shrink-0 h-fit" style={{
             filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))',
           }}
         >
