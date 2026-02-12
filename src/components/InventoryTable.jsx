@@ -1,8 +1,29 @@
 import { SquarePen, TriangleAlert, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 export default function InventoryTable({ products, onEditProduct, onDeleteProduct, canEdit = false }) {
+  // Tooltip state
+  const [hoveredProduct, setHoveredProduct] = useState(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
   return (
-    <div className="border border-gray-200 rounded-lg overflow-auto">
+    <div className="border border-gray-200 rounded-lg overflow-auto relative">
+      {hoveredProduct && (
+        <div
+          className="fixed z-[100] bg-gray-900 text-white p-3 rounded-xl shadow-2xl text-sm pointer-events-none max-w-xs transition-opacity duration-200"
+          style={{ top: mousePos.y + 15, left: mousePos.x + 15 }}
+        >
+          <p className="font-bold border-b border-gray-700 pb-1 mb-1 text-blue-300">{hoveredProduct.name}</p>
+          <p className="text-gray-200 mb-1 leading-relaxed">
+            {hoveredProduct.description ? hoveredProduct.description : <span className="italic text-gray-500">No description available</span>}
+          </p>
+          <div className="flex justify-between items-center text-xs mt-2 text-gray-400">
+            <span>{hoveredProduct.category || "Uncategorized"}</span>
+            <span className="font-mono bg-gray-800 px-1 rounded">{hoveredProduct.stock || 0} in stock</span>
+          </div>
+        </div>
+      )}
+
       <table className="w-full text-sm">
         <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
@@ -18,7 +39,13 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
         <tbody className="divide-y divide-gray-200">
           {products.length > 0 ? (
             products.map((p) => (
-              <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+              <tr
+                key={p.id}
+                className="hover:bg-gray-50 transition-colors cursor-pointer"
+                onMouseEnter={() => setHoveredProduct(p)}
+                onMouseLeave={() => setHoveredProduct(null)}
+                onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
+              >
                 <td className="p-4 font-mono text-gray-600">{p.barcode || "-"}</td>
                 <td className="p-4 font-medium text-gray-900">{p.name}</td>
                 <td className="p-4">
@@ -49,14 +76,14 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
                   {canEdit && (
                     <div className="flex items-center gap-2 justify-end">
                       <button
-                        onClick={() => onEditProduct(p)}
+                        onClick={(e) => { e.stopPropagation(); onEditProduct(p); }}
                         className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors"
                         title="Edit Product"
                       >
                         <SquarePen className="h-4 w-4" /> Edit
                       </button>
                       <button
-                        onClick={() => onDeleteProduct(p)}
+                        onClick={(e) => { e.stopPropagation(); onDeleteProduct(p); }}
                         className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
                         title="Delete Product"
                       >
