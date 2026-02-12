@@ -68,16 +68,16 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
                   </td>
 
                   {/* Pricing */}
-                  <td className="px-6 py-5 text-center">
+                  <td className="px-6 py-5 text-center flex items-center ">
                     <div className="inline-flex flex-col items-center gap-1 bg-gray-50 rounded-xl p-2 border border-gray-100 group-hover:bg-white group-hover:border-blue-100 transition-colors min-w-[100px]">
                       <div className="flex items-center justify-between w-full px-1">
                         <span className="text-[9px] font-black uppercase text-gray-400 tracking-widest">Buy</span>
-                        <span className="text-xs font-bold text-gray-700 font-mono">${Number(p.purchasePrice || 0).toFixed(2)}</span>
+                        <span className="text-sm font-bold text-gray-700 font-mono">PKR {Number(p.purchasePrice || 0)}</span>
                       </div>
                       <div className="w-full h-px bg-gray-200 my-0.5"></div>
                       <div className="flex items-center justify-between w-full px-1">
                         <span className="text-[9px] font-black uppercase text-blue-500 tracking-widest">Sell</span>
-                        <span className="text-sm font-black text-blue-700 font-mono">${Number(p.salePrice || 0).toFixed(2)}</span>
+                        <span className="text-md font-black text-blue-700 font-mono pl-1"> PKR {Number(p.salePrice || 0)}</span>
                       </div>
                     </div>
                   </td>
