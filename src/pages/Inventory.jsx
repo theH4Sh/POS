@@ -50,19 +50,24 @@ const Inventory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="rounded-xl bg-white shadow-xl overflow-hidden">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-50 via-blue-50 to-indigo-100 p-8">
+      <div className="max-w-[1200px] mx-auto space-y-8">
+        <div className="rounded-3xl bg-white/70 backdrop-blur-xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.1)] border border-white overflow-hidden transition-all duration-500">
           <InventoryHeader onAddProduct={() => setShowAddModal(true)} />
 
-          <div className="p-6 space-y-4">
-            <InventorySearch value={search} onChange={setSearch} />
-            <InventoryTable
-              products={filteredProducts}
-              onEditProduct={setEditingProduct}
-              onDeleteProduct={handleDelete}
-              canEdit={isAdmin}
-            />
+          <div className="p-8 space-y-8">
+            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+              <InventorySearch value={search} onChange={setSearch} />
+            </div>
+
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <InventoryTable
+                products={filteredProducts}
+                onEditProduct={setEditingProduct}
+                onDeleteProduct={handleDelete}
+                canEdit={isAdmin}
+              />
+            </div>
           </div>
         </div>
       </div>

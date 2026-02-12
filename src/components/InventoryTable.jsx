@@ -1,4 +1,4 @@
-import { SquarePen, TriangleAlert, Trash2 } from "lucide-react";
+import { SquarePen, TriangleAlert, Trash2, ListFilter } from "lucide-react";
 import { useState } from "react";
 
 export default function InventoryTable({ products, onEditProduct, onDeleteProduct, canEdit = false }) {
@@ -7,102 +7,142 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-auto relative">
+    <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-sm relative border-separate">
       {hoveredProduct && (
         <div
-          className="fixed z-[100] bg-gray-900 text-white p-3 rounded-xl shadow-2xl text-sm pointer-events-none max-w-xs transition-opacity duration-200"
-          style={{ top: mousePos.y + 15, left: mousePos.x + 15 }}
+          className="fixed z-[100] bg-gray-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl text-sm pointer-events-none max-w-xs animate-in fade-in zoom-in-95 duration-150"
+          style={{ top: mousePos.y + 20, left: mousePos.x + 20 }}
         >
-          <p className="font-bold border-b border-gray-700 pb-1 mb-1 text-blue-300">{hoveredProduct.name}</p>
-          <p className="text-gray-200 mb-1 leading-relaxed">
+          <div className="flex items-center gap-2 mb-2 border-b border-white/10 pb-2">
+            <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
+            <p className="font-black text-blue-100 uppercase tracking-tighter">{hoveredProduct.name}</p>
+          </div>
+          <p className="text-gray-300 mb-3 leading-relaxed text-xs">
             {hoveredProduct.description ? hoveredProduct.description : <span className="italic text-gray-500">No description available</span>}
           </p>
-          <div className="flex justify-between items-center text-xs mt-2 text-gray-400">
-            <span>{hoveredProduct.category || "Uncategorized"}</span>
-            <span className="font-mono bg-gray-800 px-1 rounded">{hoveredProduct.stock || 0} in stock</span>
+          <div className="flex justify-between items-center text-[10px] text-white/50 bg-white/5 p-2 rounded-lg">
+            <span className="font-bold uppercase">{hoveredProduct.category || "General"}</span>
+            <span className="font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">{hoveredProduct.stock || 0} IN STOCK</span>
           </div>
         </div>
       )}
 
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50 border-b border-gray-200">
-          <tr>
-            <th className="p-4 text-left font-semibold text-gray-600">Barcode</th>
-            <th className="p-4 text-left font-semibold text-gray-600">Product Name</th>
-            <th className="p-4 text-left font-semibold text-gray-600">Category</th>
-            <th className="p-4 text-left font-semibold text-gray-600">Purchase / Sale Price</th>
-            <th className="p-4 text-left font-semibold text-gray-600">Stock</th>
-            <th className="p-4 text-left font-semibold text-gray-600">Status</th>
-            <th className="p-4 text-right font-semibold text-gray-600">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200">
-          {products.length > 0 ? (
-            products.map((p) => (
-              <tr
-                key={p.id}
-                className="hover:bg-gray-50 transition-colors cursor-pointer"
-                onMouseEnter={() => setHoveredProduct(p)}
-                onMouseLeave={() => setHoveredProduct(null)}
-                onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
-              >
-                <td className="p-4 font-mono text-gray-600">{p.barcode || "-"}</td>
-                <td className="p-4 font-medium text-gray-900">{p.name}</td>
-                <td className="p-4">
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
-                    {p.category || "-"}
-                  </span>
-                </td>
-                <td className="p-4 text-gray-700">
-                  ${p.purchasePrice || 0} / ${p.salePrice || 0}
-                </td>
-                <td className="p-4 text-gray-900 font-semibold">{p.stock}</td>
-                <td className="p-4">
-                  <div
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold flex items-center w-fit ${p.status === "In Stock"
-                      ? "border border-green-300 bg-green-50 text-green-700"
-                      : p.status === "Low Stock"
-                        ? "border border-yellow-300 bg-yellow-50 text-yellow-700"
-                        : "border border-red-300 bg-red-50 text-red-700"
-                      }`}
-                  >
-                    {p.status !== "In Stock" && p.status !== "Low Stock" && (
-                      <TriangleAlert className="h-3.5 w-3.5 mr-1" />
+      <div className="overflow-auto max-h-[600px] custom-scrollbar">
+        <table className="w-full text-sm border-collapse">
+          <thead className="sticky top-0 z-20">
+            <tr className="bg-gray-50/80 backdrop-blur-md border-b border-gray-100">
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Barcode</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Product Information</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Price (Buy/Sell)</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Stock Details</th>
+              <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {products.length > 0 ? (
+              products.map((p) => (
+                <tr
+                  key={p.id}
+                  className="group hover:bg-blue-50/40 transition-all duration-200 cursor-default"
+                  onMouseEnter={() => setHoveredProduct(p)}
+                  onMouseLeave={() => setHoveredProduct(null)}
+                  onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
+                >
+                  {/* Barcode */}
+                  <td className="px-6 py-5 whitespace-nowrap">
+                    <span className="font-mono text-[11px] text-gray-600 bg-gray-100 px-2 py-1 rounded-md border border-gray-200 group-hover:bg-white group-hover:border-blue-200 group-hover:text-blue-700 transition-colors font-semibold">
+                      {p.barcode || "NONE"}
+                    </span>
+                  </td>
+
+                  {/* Name & Category */}
+                  <td className="px-6 py-5">
+                    <div className="flex flex-col">
+                      <span className="font-black text-gray-900 text-base group-hover:text-blue-800 transition-colors tracking-tight">{p.name}</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] font-black uppercase text-blue-600 tracking-tighter bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                          {p.category || "Uncategorized"}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Pricing */}
+                  <td className="px-6 py-5 text-center">
+                    <div className="inline-flex flex-col items-center gap-1 bg-gray-50 rounded-xl p-2 border border-gray-100 group-hover:bg-white group-hover:border-blue-100 transition-colors min-w-[100px]">
+                      <div className="flex items-center justify-between w-full px-1">
+                        <span className="text-[9px] font-black uppercase text-gray-400 tracking-widest">Buy</span>
+                        <span className="text-xs font-bold text-gray-700 font-mono">${Number(p.purchasePrice || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="w-full h-px bg-gray-200 my-0.5"></div>
+                      <div className="flex items-center justify-between w-full px-1">
+                        <span className="text-[9px] font-black uppercase text-blue-500 tracking-widest">Sell</span>
+                        <span className="text-sm font-black text-blue-700 font-mono">${Number(p.salePrice || 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Stock & Status */}
+                  <td className="px-6 py-5">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xl font-black font-mono tracking-tighter ${p.stock < 10 ? 'text-red-600 animate-pulse' : 'text-gray-900'}`}>
+                          {p.stock}
+                        </span>
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">units</span>
+                      </div>
+
+                      <div
+                        className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-tighter border-2 flex items-center gap-1.5 shadow-sm ${p.status === "In Stock"
+                          ? "bg-green-50 text-green-700 border-green-200"
+                          : p.status === "Low Stock"
+                            ? "bg-amber-50 text-amber-700 border-amber-200"
+                            : "bg-red-50 text-red-700 border-red-200"
+                          }`}
+                      >
+                        {p.status === "Out of Stock" && <TriangleAlert className="h-2.5 w-2.5" />}
+                        {p.status}
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-6 py-5 text-right whitespace-nowrap">
+                    {canEdit && (
+                      <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onEditProduct(p); }}
+                          className="p-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-200 shadow-sm border border-blue-100"
+                          title="Edit Product"
+                        >
+                          <SquarePen className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onDeleteProduct(p); }}
+                          className="p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-200 shadow-sm border border-red-100"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     )}
-                    {p.status}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="px-6 py-20 text-center">
+                  <div className="flex flex-col items-center justify-center text-gray-300">
+                    <ListFilter className="h-16 w-16 mb-4 stroke-[1]" />
+                    <p className="text-lg font-medium">No products found</p>
+                    <p className="text-sm">Try adjusting your search or add a new product</p>
                   </div>
                 </td>
-                <td className="p-4 text-right">
-                  {canEdit && (
-                    <div className="flex items-center gap-2 justify-end">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onEditProduct(p); }}
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors"
-                        title="Edit Product"
-                      >
-                        <SquarePen className="h-4 w-4" /> Edit
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onDeleteProduct(p); }}
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
-                        title="Delete Product"
-                      >
-                        <Trash2 className="h-4 w-4" /> Delete
-                      </button>
-                    </div>
-                  )}
-                </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="7" className="p-8 text-center text-gray-500">
-                No products found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

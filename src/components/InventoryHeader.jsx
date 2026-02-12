@@ -2,21 +2,30 @@ import { ListFilter, Plus } from "lucide-react";
 
 export default function InventoryHeader({ onAddProduct }) {
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-8 flex flex-wrap items-center justify-between gap-4">
-      <div>
-        <h3 className="text-3xl font-bold text-white flex items-center gap-3">
-          <ListFilter className="h-8 w-8" /> Inventory Management
-        </h3>
-        <p className="text-blue-100 text-sm mt-2">
-          View and manage your product inventory
-        </p>
+    <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 p-8 flex flex-wrap items-center justify-between gap-6">
+      <div className="flex items-center gap-5">
+        <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
+          <ListFilter className="h-8 w-8 text-white" />
+        </div>
+        <div>
+          <h3 className="text-3xl font-black text-white tracking-tight">
+            Inventory <span className="text-blue-300">Management</span>
+          </h3>
+          <p className="text-blue-100/70 text-sm mt-1 font-medium">
+            Manage your medical stock and product catalog
+          </p>
+        </div>
       </div>
+
       <button
         type="button"
         onClick={onAddProduct}
-        className="flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 font-semibold rounded-lg shadow-lg hover:bg-blue-50 transition-colors"
+        className="group relative flex items-center gap-2 px-6 py-3.5 bg-white text-blue-900 font-bold rounded-xl shadow-[0_10px_20px_-5px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
       >
-        <Plus className="h-5 w-5" /> Add Product
+        <div className="bg-blue-100 p-1 rounded-md group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+          <Plus className="h-4 w-4" />
+        </div>
+        Add New Product
       </button>
     </div>
   );

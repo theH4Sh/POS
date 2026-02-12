@@ -72,7 +72,7 @@ const ScanProductsCard = ({ onProductScanned }) => {
     <>
       {hoveredProduct && (
         <div
-          className="fixed z-[100] bg-gray-900 text-white p-3 rounded-xl shadow-2xl text-sm pointer-events-none max-w-xs transition-opacity duration-200"
+          className="fixed z-[100] bg-gray-900 text-white p-3 rounded-xl shadow-2xl text-sm pointer-events-none max-w-xs animate-in fade-in duration-150"
           style={{ top: mousePos.y + 15, left: mousePos.x + 15 }}
         >
           <p className="font-bold border-b border-gray-700 pb-1 mb-1 text-blue-300">{hoveredProduct.name}</p>
