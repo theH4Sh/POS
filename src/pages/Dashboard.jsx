@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar } from "lucide-react";
