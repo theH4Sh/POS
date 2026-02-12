@@ -2,14 +2,19 @@ import ScanProductsCard from "../components/ScanProductsCard";
 import CartItemsCard from "../components/CartItemsCard";
 import ReceiptCard from "../components/ReceiptCard";
 import LowStockAlerts from "../components/LowStockAlerts";
-import { useState } from "react";
+import { useState, useRef, useMemo } from "react";
 import { Plus, X, Trash2 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import useKeyboardShortcuts from "../hooks/useKeyboardShortcuts";
 
 const Checkout = () => {
   const { user, carts, setCarts, activeCartIndex, setActiveCartIndex, discount, setDiscount } = useOutletContext();
   const [lastOrder, setLastOrder] = useState(null);
+
+  // Refs for focusing inputs via shortcuts
+  const barcodeRef = useRef(null);
+  const searchRef = useRef(null);
 
   const cart = carts[activeCartIndex] || [];
 
@@ -104,11 +109,6 @@ const Checkout = () => {
 
   const switchCart = (index) => {
     setActiveCartIndex(index);
-    // We don't reset discount here because it's now shared, or should it be per cart?
-    // User didn't specify, but usually discount is per-transaction.
-    // If we want it per-cart, we should store it IN the cart object.
-    // For now, I'll keep it as is (shared global discount for the app) to keep it simple,
-    // as state lifting was the primary goal for persistence.
   };
 
   const handleCheckout = async () => {
@@ -163,6 +163,24 @@ const Checkout = () => {
       toast.error("Error processing order: " + err.message);
     }
   };
+
+  // Keyboard shortcuts for checkout page
+  const shortcutActions = useMemo(() => ({
+    focusSearch: () => { searchRef.current?.focus(); searchRef.current?.select(); },
+    focusBarcode: () => { barcodeRef.current?.focus(); barcodeRef.current?.select(); },
+    newCart: () => addNewCart(),
+    deleteCart: () => deleteCart(activeCartIndex),
+    checkout: () => handleCheckout(),
+    printReceipt: () => window.print(),
+    prevCart: () => {
+      if (activeCartIndex > 0) setActiveCartIndex(activeCartIndex - 1);
+    },
+    nextCart: () => {
+      if (activeCartIndex < carts.length - 1) setActiveCartIndex(activeCartIndex + 1);
+    },
+  }), [activeCartIndex, carts.length, cart, discount]);
+
+  useKeyboardShortcuts(shortcutActions);
 
   return (
     <div className="flex flex-col gap-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -236,7 +254,11 @@ const Checkout = () => {
 
         {/* Right Col: Lookup (Smaller/Narrower) */}
         <div className="lg:col-span-1 space-y-6">
-          <ScanProductsCard onProductScanned={handleProductScanned} />
+          <ScanProductsCard
+            onProductScanned={handleProductScanned}
+            barcodeRef={barcodeRef}
+            searchRef={searchRef}
+          />
         </div>
       </div>
 

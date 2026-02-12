@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Plus, LogOut, Trash2 } from "lucide-react";
+import { Users, Plus, LogOut, Trash2, Keyboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
@@ -219,6 +219,88 @@ export default function AdminPanel({ user, onLogout }) {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Keyboard Shortcuts Reference */}
+        <div className="bg-white rounded-[2rem] shadow-xl border border-gray-100 overflow-hidden">
+          <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-gradient-to-r from-gray-50/50 to-transparent">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-violet-100 to-purple-50 rounded-2xl border border-violet-100">
+                <Keyboard className="h-6 w-6 text-violet-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">Keyboard Shortcuts</h2>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">All shortcuts use Alt + Key</p>
+              </div>
+            </div>
+            <span className="bg-violet-50 text-violet-700 text-[10px] font-black px-3 py-1 rounded-full border border-violet-100 uppercase tracking-tighter">Quick Reference</span>
+          </div>
+
+          <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Navigation */}
+            <div className="space-y-3">
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                Navigation
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { keys: "Alt + 1", action: "Go to Checkout" },
+                  { keys: "Alt + 2", action: "Go to Inventory" },
+                  { keys: "Alt + 3", action: "Go to Analytics" },
+                ].map((s) => (
+                  <div key={s.keys} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all group">
+                    <span className="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">{s.action}</span>
+                    <kbd className="px-2.5 py-1 bg-white text-[11px] font-black text-gray-700 rounded-lg border border-gray-200 shadow-sm font-mono tracking-tight">{s.keys}</kbd>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Product Lookup */}
+            <div className="space-y-3">
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                Product Lookup
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { keys: "Alt + S", action: "Focus Search" },
+                  { keys: "Alt + B", action: "Focus Barcode" },
+                  { keys: "↑ ↓", action: "Navigate Results" },
+                  { keys: "Enter", action: "Select Result" },
+                  { keys: "Escape", action: "Clear Results" },
+                ].map((s) => (
+                  <div key={s.keys} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group">
+                    <span className="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">{s.action}</span>
+                    <kbd className="px-2.5 py-1 bg-white text-[11px] font-black text-gray-700 rounded-lg border border-gray-200 shadow-sm font-mono tracking-tight">{s.keys}</kbd>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Cart & Checkout */}
+            <div className="space-y-3">
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Cart & Checkout
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { keys: "Alt + N", action: "New Cart" },
+                  { keys: "Alt + W", action: "Close Cart" },
+                  { keys: "Alt + ← →", action: "Switch Carts" },
+                  { keys: "Alt + Enter", action: "Complete Order" },
+                  { keys: "Alt + P", action: "Print Receipt" },
+                ].map((s) => (
+                  <div key={s.keys} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all group">
+                    <span className="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">{s.action}</span>
+                    <kbd className="px-2.5 py-1 bg-white text-[11px] font-black text-gray-700 rounded-lg border border-gray-200 shadow-sm font-mono tracking-tight">{s.keys}</kbd>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

@@ -1,13 +1,55 @@
 import { Barcode, Search, AlertCircle, Loader } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "react-hot-toast";
 
-const ScanProductsCard = ({ onProductScanned }) => {
+const ScanProductsCard = ({ onProductScanned, barcodeRef, searchRef }) => {
   const [barcode, setBarcode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const resultsContainerRef = useRef(null);
+  const cardRef = useRef(null);
+
+  // Auto-scroll highlighted item into view
+  useEffect(() => {
+    if (highlightedIndex >= 0 && resultsContainerRef.current) {
+      const items = resultsContainerRef.current.querySelectorAll('[data-result-item]');
+      items[highlightedIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [highlightedIndex]);
+
+  // Clear results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (cardRef.current && !cardRef.current.contains(e.target)) {
+        setResults([]);
+        setHighlightedIndex(-1);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Keyboard navigation for search results
+  const handleResultsKeyDown = (e) => {
+    if (results.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex(prev => prev < results.length - 1 ? prev + 1 : 0);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex(prev => prev > 0 ? prev - 1 : results.length - 1);
+    } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+      e.preventDefault();
+      handleSelectProduct(results[highlightedIndex]);
+    } else if (e.key === 'Escape') {
+      setResults([]);
+      setHighlightedIndex(-1);
+    }
+  };
 
   const handleBarcodeSubmit = async (e) => {
     e.preventDefault();
@@ -29,6 +71,7 @@ const ScanProductsCard = ({ onProductScanned }) => {
         setHoveredProduct(null);
       } else if (mappedProducts.length > 1) {
         setResults(mappedProducts);
+        setHighlightedIndex(0);
       } else {
         toast.error("Product not found");
       }
@@ -54,7 +97,7 @@ const ScanProductsCard = ({ onProductScanned }) => {
           stock: Number.isFinite(p.quantity) ? p.quantity : 0
         }));
         setResults(mappedProducts);
-        console.log("Search results:", mappedProducts);
+        setHighlightedIndex(0);
       } else {
         toast.error("No products found");
         setResults([]);
@@ -99,7 +142,7 @@ const ScanProductsCard = ({ onProductScanned }) => {
         document.body
       )}
 
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden flex flex-col h-[600px] relative">
+      <div ref={cardRef} className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden flex flex-col h-[600px] relative">
         {/* Header */}
         <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
           <h3 className="text-lg font-bold flex items-center text-gray-800 gap-2">
@@ -125,8 +168,9 @@ const ScanProductsCard = ({ onProductScanned }) => {
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
                 className="w-full h-12 pl-4 pr-24 bg-gray-50 border-2 border-transparent transition-all duration-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none font-mono"
-                disabled={loading}
                 autoFocus
+                onKeyDown={handleResultsKeyDown}
+                ref={barcodeRef}
               />
               <button
                 type="submit"
@@ -160,7 +204,8 @@ const ScanProductsCard = ({ onProductScanned }) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-12 pl-4 pr-24 bg-gray-50 border-2 border-transparent transition-all duration-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-gray-900 focus:ring-4 focus:ring-gray-900/10 outline-none"
-                disabled={loading}
+                ref={searchRef}
+                onKeyDown={handleResultsKeyDown}
               />
               <button
                 type="submit"
@@ -177,18 +222,22 @@ const ScanProductsCard = ({ onProductScanned }) => {
             <div className="pt-2 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-semibold text-gray-900">Search Results</span>
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">{results.length} found</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-400 font-medium">↑↓ Navigate · Enter Select · Esc Clear</span>
+                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">{results.length} found</span>
+                </div>
               </div>
 
-              <div className="space-y-2.5 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
-                {results.map((product) => (
+              <div ref={resultsContainerRef} className="space-y-2.5 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
+                {results.map((product, index) => (
                   <div
                     key={product.id}
+                    data-result-item
                     onClick={() => handleSelectProduct(product)}
-                    onMouseEnter={() => setHoveredProduct(product)}
+                    onMouseEnter={() => { setHoveredProduct(product); setHighlightedIndex(index); }}
                     onMouseLeave={() => setHoveredProduct(null)}
                     onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
-                    className="group bg-white border border-gray-100 p-3 rounded-xl hover:border-indigo-500 hover:shadow-md hover:ring-2 hover:ring-indigo-500/10 cursor-pointer transition-all duration-200 active:scale-[0.98]"
+                    className={`group bg-white border p-3 rounded-xl cursor-pointer transition-all duration-200 active:scale-[0.98] ${highlightedIndex === index ? 'border-indigo-500 shadow-md ring-2 ring-indigo-500/10 bg-indigo-50/30' : 'border-gray-100 hover:border-indigo-500 hover:shadow-md hover:ring-2 hover:ring-indigo-500/10'}`}
                   >
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0">
