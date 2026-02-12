@@ -140,8 +140,8 @@ export default function AdminPanel({ user, onLogout }) {
                 {message && (
                   <div
                     className={`p-4 rounded-2xl text-xs font-black uppercase tracking-widest animate-in slide-in-from-top-2 duration-200 border-2 ${message.type === "success"
-                        ? "bg-green-50 text-green-700 border-green-100"
-                        : "bg-red-50 text-red-700 border-red-100"
+                      ? "bg-green-50 text-green-700 border-green-100"
+                      : "bg-red-50 text-red-700 border-red-100"
                       }`}
                   >
                     {message.text}
@@ -170,7 +170,7 @@ export default function AdminPanel({ user, onLogout }) {
                 <span className="bg-indigo-50 text-indigo-700 text-[10px] font-black px-3 py-1 rounded-full border border-indigo-100 uppercase tracking-tighter">System Audit</span>
               </div>
 
-              <div className="p-8 flex-1">
+              <div className="p-8 flex-1 overflow-y-auto max-h-[500px] custom-scrollbar">
                 {loading ? (
                   <div className="py-20 flex flex-col items-center justify-center space-y-4">
                     <div className="h-10 w-10 border-4 border-blue-50 border-t-blue-600 rounded-full animate-spin"></div>

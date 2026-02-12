@@ -357,7 +357,7 @@ const Dashboard = ({ user }) => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-sm border-separate border-spacing-0">
               <thead>
                 <tr className="bg-gray-50/50">
