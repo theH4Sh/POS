@@ -1,19 +1,18 @@
 import { Barcode, Search, AlertCircle, Loader } from "lucide-react";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 const ScanProductsCard = ({ onProductScanned }) => {
   const [barcode, setBarcode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleBarcodeSubmit = async (e) => {
     e.preventDefault();
     if (!barcode.trim()) return;
 
     setLoading(true);
-    setError("");
     setResults([]);
 
     try {
@@ -30,10 +29,10 @@ const ScanProductsCard = ({ onProductScanned }) => {
       } else if (mappedProducts.length > 1) {
         setResults(mappedProducts);
       } else {
-        setError("Product not found");
+        toast.error("Product not found");
       }
     } catch (err) {
-      setError(err.message || "Error searching product");
+      toast.error(err.message || "Error searching product");
     } finally {
       setLoading(false);
     }
@@ -44,7 +43,6 @@ const ScanProductsCard = ({ onProductScanned }) => {
     if (!searchQuery.trim()) return;
 
     setLoading(true);
-    setError("");
 
     try {
       const products = await window.api.searchProduct(searchQuery);
@@ -57,11 +55,11 @@ const ScanProductsCard = ({ onProductScanned }) => {
         setResults(mappedProducts);
         console.log("Search results:", mappedProducts);
       } else {
-        setError("No products found");
+        toast.error("No products found");
         setResults([]);
       }
     } catch (err) {
-      setError(err.message || "Error searching product");
+      toast.error(err.message || "Error searching product");
     } finally {
       setLoading(false);
     }
@@ -108,13 +106,6 @@ const ScanProductsCard = ({ onProductScanned }) => {
         </div>
 
         <div className="p-6 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
-
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
-              <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-              <span className="font-medium">{error}</span>
-            </div>
-          )}
 
           {/* Barcode Section */}
           <div className="space-y-3">
@@ -220,7 +211,7 @@ const ScanProductsCard = ({ onProductScanned }) => {
               </div>
             </div>
           ) : (
-            !loading && !error && (
+            !loading && (
               <div className="flex flex-col items-center justify-center py-8 text-gray-400 opacity-60">
                 <Search className="h-10 w-10 mb-2 stroke-[1.5]" />
                 <p className="text-sm font-medium">Ready to search</p>

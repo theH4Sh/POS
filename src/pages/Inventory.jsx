@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import AddProductModal from "../components/AddProductModal";
 import EditProductModal from "../components/EditProductModal";
 import InventoryHeader from "../components/InventoryHeader";
@@ -44,7 +45,7 @@ const Inventory = () => {
         load(); // Reload the list
       } catch (err) {
         console.error("Failed to delete product:", err);
-        alert("Failed to delete product");
+        toast.error("Failed to delete product");
       }
     }
   };

@@ -1,26 +1,26 @@
 import { useState } from "react";
-import { LogIn, AlertCircle } from "lucide-react";
+import { LogIn } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     try {
       const result = await window.api.login(username, password);
       if (result.success) {
         onLogin(result.user);
+        toast.success(`Welcome back, ${result.user.username}!`);
       } else {
-        setError(result.message);
+        toast.error(result.message);
       }
     } catch (err) {
-      setError("Login failed. Please try again.");
+      toast.error("Login failed. Please try again.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -45,13 +45,6 @@ export default function Login({ onLogin }) {
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
-            {error && (
-              <div className="p-4 bg-red-50 border-2 border-red-200 rounded-lg flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
-                <p className="text-red-700 text-sm font-medium">{error}</p>
-              </div>
-            )}
-
             {/* Username */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">

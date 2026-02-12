@@ -5,11 +5,11 @@ import LowStockAlerts from "../components/LowStockAlerts";
 import { useState } from "react";
 import { Plus, X, Trash2 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const Checkout = () => {
   const { carts, setCarts, activeCartIndex, setActiveCartIndex, discount, setDiscount } = useOutletContext();
   const [lastOrder, setLastOrder] = useState(null);
-  const [checkoutMessage, setCheckoutMessage] = useState("");
 
   const cart = carts[activeCartIndex] || [];
 
@@ -46,7 +46,7 @@ const Checkout = () => {
     if (existingItem) {
       // Prevent exceeding available stock
       if (existingItem.quantity + 1 > existingItem.stock) {
-        setCheckoutMessage(`✗ Only ${existingItem.stock} available for ${existingItem.name}`);
+        toast.error(`Only ${existingItem.stock} available for ${existingItem.name}`);
         return;
       }
 
@@ -62,14 +62,12 @@ const Checkout = () => {
       // If product has no stock or stock is zero
       const available = Number.isFinite(product.quantity) ? product.quantity : 0;
       if (available <= 0) {
-        setCheckoutMessage(`✗ ${product.name} is out of stock`);
+        toast.error(`${product.name} is out of stock`);
         return;
       }
 
-      // Add new item to cart and preserve available stock as `stock`
       setCart([...cart, { ...product, stock: available, quantity: 1 }]);
     }
-    setCheckoutMessage("");
   };
 
   const handleUpdateQuantity = (productId, newQuantity) => {
@@ -78,7 +76,7 @@ const Checkout = () => {
 
     // Allow negative quantities for refunds, but don't exceed stock in positive direction
     if (newQuantity > 0 && newQuantity > (item.stock ?? 0)) {
-      setCheckoutMessage(`✗ Only ${item.stock} available for ${item.name}`);
+      toast.error(`Only ${item.stock} available for ${item.name}`);
       return;
     }
 
@@ -93,7 +91,6 @@ const Checkout = () => {
         item.id === productId ? { ...item, quantity: newQuantity } : item
       )
     );
-    setCheckoutMessage("");
   };
 
   const handleRemoveItem = (productId) => {
@@ -102,13 +99,11 @@ const Checkout = () => {
 
   const handleClearCart = () => {
     setCart([]);
-    setCheckoutMessage("");
     setDiscount(0);
   };
 
   const switchCart = (index) => {
     setActiveCartIndex(index);
-    setCheckoutMessage("");
     // We don't reset discount here because it's now shared, or should it be per cart?
     // User didn't specify, but usually discount is per-transaction.
     // If we want it per-cart, we should store it IN the cart object.
@@ -118,7 +113,7 @@ const Checkout = () => {
 
   const handleCheckout = async () => {
     if (cart.length === 0) {
-      setCheckoutMessage("Cart is empty!");
+      toast.error("Cart is empty!");
       return;
     }
 
@@ -130,11 +125,10 @@ const Checkout = () => {
 
     const isRefund = finalTotal < 0;
 
-    // Only validate stock for positive transactions
     if (!isRefund) {
       for (const item of cart) {
         if (item.quantity > (item.stock ?? 0)) {
-          setCheckoutMessage(`✗ Cannot checkout ${item.quantity} of ${item.name}. Only ${item.stock} available.`);
+          toast.error(`Cannot checkout ${item.quantity} of ${item.name}. Only ${item.stock} available.`);
           return;
         }
       }
@@ -147,7 +141,7 @@ const Checkout = () => {
       });
 
       if (!result || !result.success) {
-        setCheckoutMessage(`✗ ${result?.message || 'Order failed'}`);
+        toast.error(result?.message || 'Order failed');
         return;
       }
 
@@ -161,13 +155,11 @@ const Checkout = () => {
         isRefund: isRefund,
       });
 
-      setCheckoutMessage(isRefund ? "✓ Refund processed!" : "✓ Order completed successfully!");
+      toast.success(isRefund ? "Refund processed!" : "Order completed successfully!");
       setCart([]);
       setDiscount(0);
-
-      setTimeout(() => setCheckoutMessage(""), 3000);
     } catch (err) {
-      setCheckoutMessage("✗ Error processing order: " + err.message);
+      toast.error("Error processing order: " + err.message);
     }
   };
 
@@ -244,16 +236,6 @@ const Checkout = () => {
         {/* Right Col: Lookup (Smaller/Narrower) */}
         <div className="lg:col-span-1 space-y-6">
           <ScanProductsCard onProductScanned={handleProductScanned} />
-          {checkoutMessage && (
-            <div
-              className={`p-4 rounded-xl border-2 shadow-sm animate-in fade-in slide-in-from-top-2 ${checkoutMessage.startsWith("✓")
-                ? "bg-green-50 border-green-100 text-green-700 font-bold"
-                : "bg-red-50 border-red-100 text-red-700 font-bold"
-                }`}
-            >
-              {checkoutMessage}
-            </div>
-          )}
         </div>
       </div>
 

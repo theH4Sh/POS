@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Users, Plus, LogOut, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 export default function AdminPanel({ user, onLogout }) {
   const navigate = useNavigate();
@@ -11,10 +12,10 @@ export default function AdminPanel({ user, onLogout }) {
       navigate("/");
     }
   }, [user, navigate]);
+
   const [cashiers, setCashiers] = useState([]);
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,22 +36,22 @@ export default function AdminPanel({ user, onLogout }) {
   const handleAddCashier = async (e) => {
     e.preventDefault();
     if (!newUsername.trim() || !newPassword.trim()) {
-      setMessage({ type: "error", text: "Please fill in all fields" });
+      toast.error("Please fill in all fields");
       return;
     }
 
     try {
       const result = await window.api.registerCashier(newUsername, newPassword);
       if (result.success) {
-        setMessage({ type: "success", text: result.message });
+        toast.success(result.message);
         setNewUsername("");
         setNewPassword("");
         loadCashiers();
       } else {
-        setMessage({ type: "error", text: result.message });
+        toast.error(result.message);
       }
     } catch (err) {
-      setMessage({ type: "error", text: "Failed to register cashier" });
+      toast.error("Failed to register cashier");
       console.error(err);
     }
   };
@@ -136,17 +137,6 @@ export default function AdminPanel({ user, onLogout }) {
                     className="w-full px-5 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300"
                   />
                 </div>
-
-                {message && (
-                  <div
-                    className={`p-4 rounded-2xl text-xs font-black uppercase tracking-widest animate-in slide-in-from-top-2 duration-200 border-2 ${message.type === "success"
-                      ? "bg-green-50 text-green-700 border-green-100"
-                      : "bg-red-50 text-red-700 border-red-100"
-                      }`}
-                  >
-                    {message.text}
-                  </div>
-                )}
 
                 <button
                   type="submit"

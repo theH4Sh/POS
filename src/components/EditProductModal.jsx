@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Save, SquarePen, X, Barcode } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const inputClass =
   "w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 text-sm transition-all focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none";
@@ -53,9 +54,9 @@ export default function EditProductModal({ isOpen, product, onClose, onSuccess }
       });
       onClose();
       onSuccess?.();
-      alert("Product updated successfully");
+      toast.success("Product updated successfully");
     } catch (err) {
-      alert(err?.message || "Failed to update product");
+      toast.error(err?.message || "Failed to update product");
     }
   };
 

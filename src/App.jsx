@@ -5,6 +5,7 @@ import {
   Route,
   RouterProvider,
 } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 import RootLayout from "./layout/RootLayout";
 import Product from "./layout/Product";
@@ -63,6 +64,7 @@ export default function App() {
   return (
     <div>
       <RouterProvider router={router} />
+      <Toaster position="bottom-right" reverseOrder={false} />
     </div>
   );
 }
