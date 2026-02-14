@@ -16,13 +16,19 @@ const products = sqliteTable("products", {
   description: text("description").default(""),
 });
 
-// Orders schema
 const orders = sqliteTable("orders", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   items: text("items").notNull(),
   total: text("total").notNull(),
   userId: integer("userId").references(() => users.id),
   createdAt: text("createdAt").default(new Date().toISOString()),
+});
+
+// Settings schema
+const settings = sqliteTable("settings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  key: text("key").unique().notNull(),
+  value: text("value").notNull(),
 });
 
 // Users schema for authentication
@@ -63,6 +69,12 @@ db.exec(`
     createdAt TEXT DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT UNIQUE NOT NULL,
+    value TEXT NOT NULL
+  );
+
   -- Migration: Add userId to orders if it doesn't exist
   PRAGMA foreign_keys=OFF;
   BEGIN TRANSACTION;
@@ -81,6 +93,12 @@ try {
     db.prepare("ALTER TABLE orders ADD COLUMN userId INTEGER REFERENCES users(id)").run();
     console.log("✓ Migration: Added userId column to orders table");
   }
+  // Ensure autoPrintCheckout setting exists
+  const autoPrintExists = db.prepare("SELECT 1 FROM settings WHERE key = ?").get("autoPrintCheckout");
+  if (!autoPrintExists) {
+    db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)").run("autoPrintCheckout", "false");
+    console.log("✓ Migration: Initialized autoPrintCheckout setting");
+  }
 } catch (err) {
   console.error("Migration error:", err);
 }
@@ -91,4 +109,4 @@ const bcrypt = require("bcryptjs");
 
 const orm = drizzle(db);
 
-module.exports = { db, orm, products, orders, users };
+module.exports = { db, orm, products, orders, users, settings };

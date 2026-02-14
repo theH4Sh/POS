@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Plus, LogOut, Trash2, Keyboard, Shield, Activity, User } from "lucide-react";
+import { Users, Plus, LogOut, Trash2, Keyboard, Shield, Activity, User, Settings as SettingsIcon, Printer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
@@ -17,10 +17,24 @@ export default function AdminPanel({ user, onLogout }) {
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState({ autoPrintCheckout: false });
+  const [settingsLoading, setSettingsLoading] = useState(true);
 
   useEffect(() => {
     loadCashiers();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const data = await window.api.getSettings();
+      setSettings(data);
+    } catch (err) {
+      console.error("Error loading settings:", err);
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
 
   const loadCashiers = async () => {
     try {
@@ -78,6 +92,21 @@ export default function AdminPanel({ user, onLogout }) {
   const handleLogout = async () => {
     await window.api.logout();
     onLogout();
+  };
+
+  const handleToggleSetting = async (key, currentValue) => {
+    const newValue = !currentValue;
+    try {
+      const result = await window.api.updateSetting({ key, value: newValue });
+      if (result.success) {
+        setSettings(prev => ({ ...prev, [key]: newValue }));
+        toast.success(`Setting updated: ${newValue ? 'Enabled' : 'Disabled'}`);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (err) {
+      toast.error("Failed to update setting");
+    }
   };
 
   const handleBackToApp = () => {
@@ -257,6 +286,49 @@ export default function AdminPanel({ user, onLogout }) {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* System Configuration */}
+        <div className="bg-white rounded-3xl shadow-lg shadow-gray-200/50 border border-gray-100 overflow-hidden">
+          <div className="p-8 border-b border-gray-50 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-100 text-blue-600 rounded-2xl">
+                <SettingsIcon className="h-6 w-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 tracking-tight">System Configuration</h2>
+                <p className="text-sm font-medium text-gray-400 mt-1">Configure global behavior</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex items-center justify-between p-6 bg-gray-50 rounded-2xl border border-gray-100 transition-all hover:border-blue-200">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white rounded-xl shadow-sm border border-gray-100">
+                    <Printer className="h-6 w-6 text-gray-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Auto-print Receipt</h3>
+                    <p className="text-sm text-gray-400 font-medium">Trigger print dialog immediately after checkout</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleToggleSetting('autoPrintCheckout', settings.autoPrintCheckout)}
+                  disabled={settingsLoading}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ring-2 ring-offset-2 ${settings.autoPrintCheckout ? 'bg-blue-600 ring-blue-500' : 'bg-gray-200 ring-gray-100'
+                    }`}
+                >
+                  <span
+                    className={`${settings.autoPrintCheckout ? 'translate-x-6' : 'translate-x-1'
+                      } inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-200 ease-in-out shadow-md`}
+                  />
+                </button>
               </div>
             </div>
           </div>

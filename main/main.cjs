@@ -148,6 +148,35 @@ ipcMain.handle("auth:updateProfile", async (_, { currentPassword, newUsername, n
   }
 });
 
+// Settings Handlers
+ipcMain.handle("settings:get", () => {
+  try {
+    const allSettings = db.prepare("SELECT key, value FROM settings").all();
+    const settingsMap = {};
+    allSettings.forEach(s => {
+      settingsMap[s.key] = s.value === 'true' ? true : s.value === 'false' ? false : s.value;
+    });
+    return settingsMap;
+  } catch (err) {
+    console.error("Error getting settings:", err);
+    return {};
+  }
+});
+
+ipcMain.handle("settings:update", (_, { key, value }) => {
+  try {
+    if (!currentUser || currentUser.role !== "admin") {
+      return { success: false, message: "Unauthorized - admin only" };
+    }
+    const valStr = typeof value === 'boolean' ? String(value) : value;
+    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run(key, valStr);
+    return { success: true };
+  } catch (err) {
+    console.error("Error updating setting:", err);
+    return { success: false, message: err.message };
+  }
+});
+
 // Register cashier (admin only)
 ipcMain.handle("auth:registerCashier", async (_, { username, password }) => {
   try {

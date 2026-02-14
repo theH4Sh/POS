@@ -22,4 +22,6 @@ contextBridge.exposeInMainWorld("api", {
   createOrder: (data) => ipcRenderer.invoke("order:create", data),
   listLowStockAlerts: () => ipcRenderer.invoke("medicine:lowStock"),
   getDashboardStats: (params) => ipcRenderer.invoke("getDashboardStats", params),
+  getSettings: () => ipcRenderer.invoke("settings:get"),
+  updateSetting: (data) => ipcRenderer.invoke("settings:update", data),
 });

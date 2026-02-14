@@ -2,7 +2,7 @@ import ScanProductsCard from "../components/ScanProductsCard";
 import CartItemsCard from "../components/CartItemsCard";
 import ReceiptCard from "../components/ReceiptCard";
 import LowStockAlerts from "../components/LowStockAlerts";
-import { useState, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Plus, X, Trash2 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -12,6 +12,21 @@ const Checkout = () => {
   const { user, carts, setCarts, activeCartIndex, setActiveCartIndex, discount, setDiscount } = useOutletContext();
   const [lastOrder, setLastOrder] = useState(null);
   const [showCustomDiscount, setShowCustomDiscount] = useState(false);
+  const [autoPrint, setAutoPrint] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const settings = await window.api.getSettings();
+        if (settings.autoPrintCheckout !== undefined) {
+          setAutoPrint(settings.autoPrintCheckout);
+        }
+      } catch (err) {
+        console.error("Error loading settings:", err);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   // Refs for focusing inputs via shortcuts
   const barcodeRef = useRef(null);
@@ -164,6 +179,13 @@ const Checkout = () => {
       toast.success(isRefund ? "Refund processed!" : "Order completed successfully!");
       setCart([]);
       setDiscount(0);
+
+      // Trigger auto-print if enabled
+      if (autoPrint && !isRefund) {
+        setTimeout(() => {
+          window.print();
+        }, 300); // Small delay to ensure receipt preview has updated
+      }
     } catch (err) {
       toast.error("Error processing order: " + err.message);
     }
