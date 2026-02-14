@@ -111,8 +111,8 @@ const Dashboard = ({ user }) => {
               <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
               <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
             </div>
-            <p className="text-xl font-black text-gray-900 tracking-tight">Synchronizing Data</p>
-            <p className="mt-2 text-gray-500 font-bold text-sm tracking-wide uppercase">Crunching analytics...</p>
+            <p className="text-xl font-black text-gray-900 tracking-tight">Loading Dashboard</p>
+            <p className="mt-2 text-gray-500 font-bold text-sm tracking-wide uppercase">Please wait...</p>
           </div>
         </div>
       )}
@@ -127,9 +127,9 @@ const Dashboard = ({ user }) => {
               </div>
               <div>
                 <h1 className="text-4xl font-black text-gray-900 tracking-tight">
-                  Business <span className="text-blue-600">Analytics</span>
+                  Store <span className="text-blue-600">Overview</span>
                 </h1>
-                <p className="text-gray-500 font-bold text-sm uppercase tracking-widest mt-1">Command Center Overview</p>
+                <p className="text-gray-500 font-bold text-sm uppercase tracking-widest mt-1">Summary</p>
               </div>
             </div>
           </div>
@@ -195,47 +195,47 @@ const Dashboard = ({ user }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <StatCard
             icon={DollarSign}
-            label="Total Revenue"
+            label="Total Sales"
             value={`Rs ${Number(stats.totalRevenue)}`}
-            subtext="Gross income from sales"
+            subtext="Gross Income"
             color="border-green-500"
             trend={{ positive: true, value: 12.5 }}
           />
           <StatCard
             icon={ShoppingCart}
-            label="Cost of Goods"
+            label="Total Expenses"
             value={`Rs ${Number(stats.totalCost)}`}
-            subtext="Inventory purchase expenses"
+            subtext="Cost of Goods"
             color="border-amber-500"
             trend={{ positive: false, value: 4.2 }}
           />
           <StatCard
             icon={TrendingUp}
-            label="Net Profit"
+            label="Profit"
             value={`Rs ${Number(stats.profit)}`}
-            subtext={stats.profit >= 0 ? "Profitable Period" : "Below Baseline"}
+            subtext={stats.profit >= 0 ? "Profitable" : "Loss"}
             color={stats.profit >= 0 ? "border-blue-600" : "border-red-500"}
             trend={{ positive: stats.profit >= 0, value: 8.1 }}
           />
           <StatCard
             icon={ShoppingCart}
-            label="Transactions"
+            label="Orders"
             value={stats.totalOrders}
-            subtext="Completed checkouts"
+            subtext="Completed"
             color="border-indigo-500"
           />
           <StatCard
             icon={Package}
-            label="Inventory Items"
+            label="Total Products"
             value={stats.totalProducts}
-            subtext="Unique SKU count"
+            subtext="In Inventory"
             color="border-cyan-500"
           />
           <StatCard
             icon={AlertCircle}
-            label="Restock Alerts"
+            label="Low Stock"
             value={stats.lowStockCount}
-            subtext="Items below threshold"
+            subtext="Items to Restock"
             color="border-red-500"
           />
         </div>
@@ -248,11 +248,11 @@ const Dashboard = ({ user }) => {
               <div>
                 <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-3">
                   <TrendingUp className="h-6 w-6 text-blue-600" />
-                  Top Performers
+                  Top Products
                 </h2>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Best selling products</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Best Sellers</p>
               </div>
-              <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-3 py-1 rounded-full border border-blue-100 uppercase tracking-tighter">Live Ranking</span>
+              <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-3 py-1 rounded-full border border-blue-100 uppercase tracking-tighter">Live</span>
             </div>
 
             <div className="p-4 flex-1">
@@ -297,9 +297,9 @@ const Dashboard = ({ user }) => {
               <div>
                 <h2 className="text-xl font-black tracking-tight flex items-center gap-3">
                   <DollarSign className="h-6 w-6 text-green-400" />
-                  Financial Summary
+                  Money In/Out
                 </h2>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Net profitability audit</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Profitability Check</p>
               </div>
             </div>
 
@@ -319,7 +319,7 @@ const Dashboard = ({ user }) => {
                 {/* Decorative background pulse */}
                 <div className={`absolute inset-0 opacity-20 animate-pulse ${stats.profit >= 0 ? 'bg-blue-500' : 'bg-red-500'}`}></div>
 
-                <p className="text-xs font-black uppercase tracking-[0.2em] mb-4 relative z-10">Net Performance Profit</p>
+                <p className="text-xs font-black uppercase tracking-[0.2em] mb-4 relative z-10">Net Profit</p>
                 <p className={`text-6xl font-black tracking-tighter relative z-10 ${stats.profit >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
                   {stats.profit >= 0 ? '+' : ''}Rs {Math.abs(Number(stats.profit)).toLocaleString()}
                 </p>
@@ -336,7 +336,7 @@ const Dashboard = ({ user }) => {
                   <span className="text-sm font-bold text-indigo-100">Performance Status</span>
                 </div>
                 <span className="text-sm font-black uppercase tracking-tighter">
-                  {stats.profit > 0 ? 'Optimized Operation' : stats.profit === 0 ? 'Breaking Even' : 'Strategic Adjustment Required'}
+                  {stats.profit > 0 ? 'Good' : stats.profit === 0 ? 'Break Even' : 'Loss'}
                 </span>
               </div>
             </div>
@@ -349,7 +349,7 @@ const Dashboard = ({ user }) => {
             <div>
               <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-3">
                 <ShoppingCart className="h-6 w-6 text-blue-600" />
-                Audit Logs: Recent Transactions
+                Sales History
               </h2>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Activity for {getPeriodLabel()}</p>
             </div>
@@ -362,11 +362,11 @@ const Dashboard = ({ user }) => {
             <table className="w-full text-sm border-separate border-spacing-0">
               <thead>
                 <tr className="bg-gray-50/50">
-                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Audit ID</th>
-                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Operator</th>
+                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Order ID</th>
+                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Cashier</th>
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Items</th>
                   <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Amount</th>
-                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Timestamp</th>
+                  <th className="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">

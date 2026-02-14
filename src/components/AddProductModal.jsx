@@ -58,7 +58,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }) {
               <h2 className="text-2xl font-black text-white tracking-tight leading-none">
                 Add New <span className="opacity-60 font-light italic">Product</span>
               </h2>
-              <p className="text-blue-100/60 text-[10px] font-bold uppercase tracking-widest mt-1.5 ml-0.5">Inventory Catalog Entry</p>
+              <p className="text-blue-100/60 text-[10px] font-bold uppercase tracking-widest mt-1.5 ml-0.5">Item Details</p>
             </div>
           </div>
           <button
@@ -91,7 +91,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }) {
               </div>
 
               <div>
-                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">Barcode / SKU</label>
+                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">Barcode</label>
                 <div className="relative group">
                   <Barcode className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <input
@@ -193,13 +193,13 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }) {
               onClick={handleClose}
               className="flex-1 h-14 rounded-2xl border-2 border-gray-100 text-gray-500 font-black uppercase text-xs tracking-widest hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-[0.98]"
             >
-              Discard Changes
+              Cancel
             </button>
             <button
               type="submit"
               className="flex-[2] h-14 rounded-2xl bg-blue-600 text-white font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-700 shadow-[0_15px_30px_-5px_rgba(37,99,235,0.3)] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
             >
-              <Plus className="h-4 w-4" /> Finalize Addition
+              <Plus className="h-4 w-4" /> Add Item
             </button>
           </div>
         </form>

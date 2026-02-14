@@ -93,7 +93,7 @@ const Inventory = () => {
               >
                 <div className="flex items-center justify-between">
                   <p className={`text-xs font-bold uppercase tracking-widest ${statusFilter === "all" ? "text-blue-100" : "text-gray-400"
-                    }`}>Total Items</p>
+                    }`}>Total Products</p>
                   <Boxes className={`h-5 w-5 ${statusFilter === "all" ? "text-blue-200" : "text-blue-500"}`} />
                 </div>
                 <p className={`text-3xl font-black mt-1 ${statusFilter === "all" ? "text-white" : "text-gray-900"
