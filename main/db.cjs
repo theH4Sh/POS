@@ -87,19 +87,7 @@ try {
 
 const bcrypt = require("bcryptjs");
 
-// Create default admin if none exists
-const adminExists = db.prepare(`SELECT COUNT(*) as cnt FROM users WHERE role = 'admin'`).get();
-if (adminExists.cnt === 0) {
-  // Hash the default password securely
-  const defaultPassword = "admin123";
-  const hashedPassword = bcrypt.hashSync(defaultPassword, 10);
-
-  db.prepare(`
-    INSERT INTO users (username, password, role)
-    VALUES (?, ?, ?)
-  `).run("admin", hashedPassword, "admin");
-  console.log("✓ Default admin created - username: admin, password: admin123 (hashed)");
-}
+// Default admin creation removed. Admin must be registered via the Setup flow.
 
 const orm = drizzle(db);
 

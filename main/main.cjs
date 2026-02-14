@@ -23,6 +23,47 @@ function createWindow() {
 
 // ===== REGISTER ALL HANDLERS FIRST =====
 
+// ===== SYSTEM STATUS & SETUP HANDLERS =====
+
+// Check if system needs setup (no admin exists)
+ipcMain.handle("auth:checkSystemStatus", () => {
+  try {
+    const adminCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get().count;
+    return { hasAdmin: adminCount > 0 };
+  } catch (err) {
+    console.error("Error checking system status:", err);
+    return { hasAdmin: false }; // Fail safe? Or true to prevent setup? False allows setup which might be safer if DB is corrupt but we want valid state.
+  }
+});
+
+// Register the FIRST admin (Setup flow)
+ipcMain.handle("auth:registerAdmin", async (_, { username, password }) => {
+  try {
+    // SECURITY CHECK: verified again that no admin exists
+    const adminCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get().count;
+    if (adminCount > 0) {
+      return { success: false, message: "System already setup. Admin exists." };
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create Admin
+    const info = db.prepare(`
+      INSERT INTO users (username, password, role)
+      VALUES (?, ?, ?)
+    `).run(username, hashedPassword, "admin");
+
+    // Automatically log them in
+    currentUser = { id: info.lastInsertRowid, username, role: "admin" };
+
+    return { success: true, user: currentUser };
+  } catch (err) {
+    console.error("Setup error:", err);
+    return { success: false, message: "Setup failed: " + err.message };
+  }
+});
+
 // ===== AUTH HANDLERS =====
 
 // Login handler

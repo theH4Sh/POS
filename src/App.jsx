@@ -17,20 +17,33 @@ import Checkout from "./pages/Checkout";
 import Inventory from "./pages/Inventory";
 import Dashboard from "./pages/Dashboard";
 
+import Setup from "./pages/Setup";
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasAdmin, setHasAdmin] = useState(null); // null = unknown, true = exists, false = setup needed
   const [carts, setCarts] = useState([[]]);
   const [activeCartIndex, setActiveCartIndex] = useState(0);
   const [discount, setDiscount] = useState(0);
 
   useEffect(() => {
-    const checkUser = async () => {
-      const currentUser = await window.api.getCurrentUser();
-      setUser(currentUser);
-      setLoading(false);
+    const checkSystemAndUser = async () => {
+      try {
+        // 1. Check system status (does admin exist?)
+        const status = await window.api.checkSystemStatus();
+        setHasAdmin(status.hasAdmin);
+
+        // 2. Check current session
+        const currentUser = await window.api.getCurrentUser();
+        setUser(currentUser);
+      } catch (err) {
+        console.error("Initialization error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
-    checkUser();
+    checkSystemAndUser();
   }, []);
 
   if (loading) {
@@ -42,6 +55,14 @@ export default function App() {
         </div>
       </div>
     );
+  }
+
+  // If no admin exists, show Setup flow
+  if (hasAdmin === false) {
+    return <Setup onSetupComplete={(newUser) => {
+      setHasAdmin(true);
+      setUser(newUser);
+    }} />;
   }
 
   if (!user) {
