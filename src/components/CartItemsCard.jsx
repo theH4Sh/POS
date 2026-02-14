@@ -93,12 +93,27 @@ const CartItemsCard = ({
                           −
                         </button>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           value={item.quantity}
+                          onFocus={(e) => e.target.select()}
                           onChange={(e) => {
-                            let val = parseInt(e.target.value, 10);
-                            if (isNaN(val)) return;
-                            onUpdateQuantity(item.id, val);
+                            const val = e.target.value;
+                            // Allow empty string or just the minus sign for easier typing/refunds
+                            if (val === "" || val === "-") {
+                              onUpdateQuantity(item.id, val);
+                              return;
+                            }
+                            const num = parseInt(val, 10);
+                            if (!isNaN(num)) {
+                              onUpdateQuantity(item.id, num);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            // Reset to 0 if blurred with invalid content
+                            if (e.target.value === "" || e.target.value === "-") {
+                              onUpdateQuantity(item.id, 0);
+                            }
                           }}
                           className="w-10 text-center bg-transparent font-bold text-gray-800 outline-none text-sm"
                         />
@@ -109,6 +124,7 @@ const CartItemsCard = ({
                           +
                         </button>
                       </div>
+
 
                       {item.quantity < 0 && (
                         <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 rounded">Refund</span>
