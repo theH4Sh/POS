@@ -46,6 +46,9 @@ const Checkout = () => {
   };
 
   const handleProductScanned = (product) => {
+    // Clear the previous order preview as soon as a new item is added
+    if (lastOrder) setLastOrder(null);
+
     // Check if product already in cart
     const existingItem = cart.find((item) => item.id === product.id);
 
@@ -106,6 +109,7 @@ const Checkout = () => {
   const handleClearCart = () => {
     setCart([]);
     setDiscount(0);
+    setLastOrder(null);
   };
 
   const switchCart = (index) => {
