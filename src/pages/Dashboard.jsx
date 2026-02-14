@@ -1,7 +1,7 @@
 
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar, X, Receipt } from "lucide-react";
+import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar, X, Receipt, Search, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const periodLabels = {
@@ -68,8 +68,25 @@ const Dashboard = ({ user }) => {
 
   const [topProducts, setTopProducts] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
+
+  // Search and Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterProcessor, setFilterProcessor] = useState('all');
+
+  // Derived State: Unique Processors
+  const uniqueProcessors = [...new Set(recentOrders.map(o => o.processedBy))];
+
+  // Derived State: Filtered Orders
+  const filteredOrders = recentOrders.filter(order => {
+    const matchesSearch = order.id.toString().includes(searchQuery) ||
+      order.total.toString().includes(searchQuery);
+    const matchesProcessor = filterProcessor === 'all' || order.processedBy === filterProcessor;
+    return matchesSearch && matchesProcessor;
+  });
+  const [loading, setLoading] = useState(true);
+
+
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -353,8 +370,41 @@ const Dashboard = ({ user }) => {
               </h2>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Activity for {getPeriodLabel()}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-gray-500">{recentOrders.length} records retrieved</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-gray-500">{filteredOrders.length} of {recentOrders.length} records</span>
+            </div>
+          </div>
+
+          {/* Search and Filters Bar */}
+          <div className="p-4 bg-white border-b border-gray-100 flex items-center justify-between gap-4">
+            {/* Search */}
+            <div className="flex-1 relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+              <input
+                type="text"
+                placeholder="Search by Order ID or Amount..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-400"
+              />
+            </div>
+
+            {/* Processor Filter */}
+            <div className="relative group min-w-[200px]">
+              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+              <select
+                value={filterProcessor}
+                onChange={(e) => setFilterProcessor(e.target.value)}
+                className="w-full pl-12 pr-10 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all font-bold text-gray-700 appearance-none cursor-pointer"
+              >
+                <option value="all">All Cashiers</option>
+                {uniqueProcessors.map(processor => (
+                  <option key={processor} value={processor}>{processor}</option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <div className="h-0 w-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-400"></div>
+              </div>
             </div>
           </div>
 
@@ -370,8 +420,8 @@ const Dashboard = ({ user }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {recentOrders.length > 0 ? (
-                  recentOrders.map((order, idx) => (
+                {filteredOrders.length > 0 ? (
+                  filteredOrders.map((order, idx) => (
                     <tr
                       key={idx}
                       onClick={() => setSelectedOrder(order)}
@@ -419,7 +469,7 @@ const Dashboard = ({ user }) => {
                     <td colSpan="5" className="px-8 py-20 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-300">
                         <ShoppingCart className="h-16 w-16 mb-4 stroke-[1]" />
-                        <p className="text-lg font-black text-gray-400 italic">No activity logs found for this cycle</p>
+                        <p className="text-lg font-black text-gray-400 italic">No matching records found</p>
                       </div>
                     </td>
                   </tr>

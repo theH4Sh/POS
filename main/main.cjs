@@ -495,7 +495,7 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
       });
     });
 
-    recentOrders = recentOrders.slice(-20).reverse(); // Increased limit to 20 just in case
+    recentOrders = recentOrders.reverse(); // Return all orders for the period, reversed (newest first)
 
     // Get top products by sales
     const productSales = {};
