@@ -343,6 +343,26 @@ export default function AdminPanel({ user, onLogout }) {
               </div>
             </div>
 
+            {/* Inventory & Modals */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                Inventory & Modals
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { keys: "Alt + A", action: "Add Product (Inventory)" },
+                  { keys: "Ctrl + Enter", action: "Submit / Save Modal" },
+                  { keys: "Esc", action: "Close Modal" },
+                ].map((s) => (
+                  <div key={s.keys} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-purple-200 hover:bg-purple-50/30 transition-all group">
+                    <span className="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">{s.action}</span>
+                    <kbd className="px-2 py-0.5 bg-white text-[10px] font-bold text-gray-700 rounded-lg border border-gray-200 shadow-sm font-mono whitespace-nowrap ml-2">{s.keys}</kbd>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Editing */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">

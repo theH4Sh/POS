@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, SquarePen, X, Barcode } from "lucide-react";
 import { toast } from "react-hot-toast";
 
@@ -31,7 +31,21 @@ function formFromProduct(product) {
 export default function EditProductModal({ isOpen, product, onClose, onSuccess }) {
   const [form, setForm] = useState(() => formFromProduct(product));
 
-
+  // Keyboard Shortcuts: Ctrl+Enter (Submit), Esc (Close)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        handleSubmit({ preventDefault: () => { } });
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, form]);
 
   if (!isOpen) return null;
 
@@ -40,7 +54,7 @@ export default function EditProductModal({ isOpen, product, onClose, onSuccess }
   const handleClose = () => onClose();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     try {
       await window.api.updateMedicine({
         id: product.id,
@@ -129,6 +143,7 @@ export default function EditProductModal({ isOpen, product, onClose, onSuccess }
                   <option value="cosmetics">Cosmetics & Personal Care</option>
                   <option value="supplements">Supplements & Nutrition</option>
                   <option value="medical-devices">Medical Equipment</option>
+                  <option value="others">Others</option>
                 </select>
               </div>
             </div>
@@ -212,8 +227,9 @@ export default function EditProductModal({ isOpen, product, onClose, onSuccess }
             <button
               type="submit"
               className="flex-[2] h-14 rounded-2xl bg-blue-700 text-white font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-800 shadow-[0_15px_30px_-5px_rgba(37,99,235,0.3)] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+              title="Shortcut: Ctrl + Enter"
             >
-              <Save className="h-5 w-5" /> Save Changes
+              <Save className="h-5 w-5" /> Save Changes <span className="opacity-50 text-[10px] normal-case tracking-normal ml-1">(Ctrl+Enter)</span>
             </button>
           </div>
         </form>

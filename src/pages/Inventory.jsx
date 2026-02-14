@@ -35,6 +35,19 @@ const Inventory = () => {
     load();
   }, [load]);
 
+  // Shortcut: Alt + A to open Add Modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.altKey && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        setShowAddModal(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -62,6 +75,7 @@ const Inventory = () => {
       cosmetics: products.filter((p) => p.category === "cosmetics").length,
       supplements: products.filter((p) => p.category === "supplements").length,
       "medical-devices": products.filter((p) => p.category === "medical-devices").length,
+      others: products.filter((p) => p.category === "others").length,
     }
   };
 
@@ -184,6 +198,13 @@ const Inventory = () => {
                 >
                   Equipment
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${categoryFilter === 'medical-devices' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'}`}>{stats.categories["medical-devices"]}</span>
+                </button>
+                <button
+                  onClick={() => setCategoryFilter("others")}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${categoryFilter === 'others' ? 'bg-gray-600 text-white shadow-md shadow-gray-100' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  Others
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${categoryFilter === 'others' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'}`}>{stats.categories.others}</span>
                 </button>
               </div>
             </div>
