@@ -46,46 +46,47 @@ export default function App() {
     checkSystemAndUser();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center w-screen h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If no admin exists, show Setup flow
-  if (hasAdmin === false) {
-    return <Setup onSetupComplete={(newUser) => {
-      setHasAdmin(true);
-      setUser(newUser);
-    }} />;
-  }
-
-  if (!user) {
-    return <Login onLogin={setUser} />;
-  }
-
-  const router = createHashRouter(
-    createRoutesFromElements(
-      <Route element={<RootLayout />}>
-        <Route path="/admin" element={<AdminPanel user={user} onLogout={() => setUser(null)} />} />
-        <Route path="/" element={<Product user={user} onLogout={() => setUser(null)} cartState={{ carts, setCarts, activeCartIndex, setActiveCartIndex, discount, setDiscount }} />}>
-          <Route index element={<Checkout />} />
-          <Route path="manage-inventory" element={<Inventory />} />
-          <Route path="dashboard" element={<Dashboard user={user} />} />
-        </Route>
-      </Route>
-    )
-  );
-
   return (
-    <div>
-      <RouterProvider router={router} />
+    <>
       <Toaster position="bottom-right" reverseOrder={false} />
-    </div>
+      {(() => {
+        if (loading) {
+          return (
+            <div className="flex items-center justify-center w-screen h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading...</p>
+              </div>
+            </div>
+          );
+        }
+
+        if (hasAdmin === false) {
+          return <Setup onSetupComplete={(newUser) => {
+            setHasAdmin(true);
+            setUser(newUser);
+          }} />;
+        }
+
+        if (!user) {
+          return <Login onLogin={setUser} />;
+        }
+
+        const router = createHashRouter(
+          createRoutesFromElements(
+            <Route element={<RootLayout />}>
+              <Route path="/admin" element={<AdminPanel user={user} onLogout={() => setUser(null)} />} />
+              <Route path="/" element={<Product user={user} onLogout={() => setUser(null)} cartState={{ carts, setCarts, activeCartIndex, setActiveCartIndex, discount, setDiscount }} />}>
+                <Route index element={<Checkout />} />
+                <Route path="manage-inventory" element={<Inventory />} />
+                <Route path="dashboard" element={<Dashboard user={user} />} />
+              </Route>
+            </Route>
+          )
+        );
+
+        return <RouterProvider router={router} />;
+      })()}
+    </>
   );
 }
