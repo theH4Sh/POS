@@ -17,7 +17,10 @@ import { useEffect } from "react";
  * @param {Function} actions.checkout - Alt+Enter
  * @param {Function} actions.printReceipt - Alt+P
  * @param {Function} actions.prevCart - Alt+ArrowLeft
- * @param {Function} actions.nextCart - Alt+ArrowRight
+ * @param {Function} actions.focusLatestQuantity - Alt+Q
+ * @param {Function} actions.focusPrevItem - Alt+ArrowUp
+ * @param {Function} actions.focusNextItem - Alt+ArrowDown
+ * @param {Function} actions.cycleDiscount - Alt+D
  */
 export default function useKeyboardShortcuts(actions = {}) {
     useEffect(() => {
@@ -51,6 +54,20 @@ export default function useKeyboardShortcuts(actions = {}) {
                 case "b":
                 case "B":
                     if (actions.focusBarcode) { actions.focusBarcode(); matched = true; }
+                    break;
+                case "q":
+                case "Q":
+                    if (actions.focusLatestQuantity) { actions.focusLatestQuantity(); matched = true; }
+                    break;
+                case "ArrowUp":
+                    if (actions.focusPrevItem) { actions.focusPrevItem(); matched = true; }
+                    break;
+                case "ArrowDown":
+                    if (actions.focusNextItem) { actions.focusNextItem(); matched = true; }
+                    break;
+                case "d":
+                case "D":
+                    if (actions.cycleDiscount) { actions.cycleDiscount(); matched = true; }
                     break;
 
                 // Cart operations (skip if typing in an input)

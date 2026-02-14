@@ -276,64 +276,88 @@ export default function AdminPanel({ user, onLogout }) {
             </div>
           </div>
 
-          <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Navigation */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                 Navigation
               </h3>
               <div className="space-y-2">
                 {[
-                  { keys: "Alt + 1", action: "Go to Checkout" },
-                  { keys: "Alt + 2", action: "Go to Inventory" },
-                  { keys: "Alt + 3", action: "Go to Analytics" },
+                  { keys: "Alt + 1-3", action: "Switch Pages" },
+                  { keys: "Alt + ←/→", action: "Switch Cart" },
+                  { keys: "Alt + S", action: "Search" },
+                  { keys: "Alt + B", action: "Barcode" },
                 ].map((s) => (
                   <div key={s.keys} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all group">
                     <span className="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">{s.action}</span>
-                    <kbd className="px-2.5 py-1 bg-white text-xs font-bold text-gray-700 rounded-lg border border-gray-200 shadow-sm font-mono">{s.keys}</kbd>
+                    <kbd className="px-2 py-0.5 bg-white text-[10px] font-bold text-gray-700 rounded-lg border border-gray-200 shadow-sm font-mono whitespace-nowrap ml-2">{s.keys}</kbd>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Product Lookup */}
-            <div className="space-y-3">
+            {/* Selection */}
+            <div className="space-y-4">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                Product Search
+                Focus
               </h3>
               <div className="space-y-2">
                 {[
-                  { keys: "Alt + S", action: "Search" },
-                  { keys: "Alt + B", action: "Barcode" },
-                  { keys: "Enter", action: "Select" },
-                  { keys: "Escape", action: "Cancel" },
+                  { keys: "Alt + Q", action: "Focus Latest" },
+                  { keys: "Alt + D", action: "Cycle Discount (0-10%)" },
+                  { keys: "Alt + ↑/↓", action: "Switch Item" },
+                  { keys: "↑/↓", action: "Row Nav" },
+                  { keys: "Enter", action: "Select Result" },
                 ].map((s) => (
+
                   <div key={s.keys} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group">
                     <span className="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">{s.action}</span>
-                    <kbd className="px-2.5 py-1 bg-white text-xs font-bold text-gray-700 rounded-lg border border-gray-200 shadow-sm font-mono">{s.keys}</kbd>
+                    <kbd className="px-2 py-0.5 bg-white text-[10px] font-bold text-gray-700 rounded-lg border border-gray-200 shadow-sm font-mono whitespace-nowrap ml-2">{s.keys}</kbd>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Cart & Checkout */}
-            <div className="space-y-3">
+            {/* Actions */}
+            <div className="space-y-4">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                Cart
+                Actions
               </h3>
               <div className="space-y-2">
                 {[
+                  { keys: "Alt + Enter", action: "Instant Pay" },
+                  { keys: "Alt + P", action: "Print" },
                   { keys: "Alt + N", action: "New Cart" },
                   { keys: "Alt + W", action: "Close Cart" },
-                  { keys: "Alt + Enter", action: "Pay" },
-                  { keys: "Alt + P", action: "Print" },
                 ].map((s) => (
                   <div key={s.keys} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all group">
                     <span className="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">{s.action}</span>
-                    <kbd className="px-2.5 py-1 bg-white text-xs font-bold text-gray-700 rounded-lg border border-gray-200 shadow-sm font-mono">{s.keys}</kbd>
+                    <kbd className="px-2 py-0.5 bg-white text-[10px] font-bold text-gray-700 rounded-lg border border-gray-200 shadow-sm font-mono whitespace-nowrap ml-2">{s.keys}</kbd>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Editing */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                Quantity
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { keys: "Alt + =", action: "Increase" },
+                  { keys: "Alt + -", action: "Decrease" },
+                  { keys: "Enter", action: "Finish" },
+                  { keys: "Esc", action: "Cancel" },
+                ].map((s) => (
+                  <div key={s.keys} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-orange-200 hover:bg-orange-50/30 transition-all group">
+                    <span className="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">{s.action}</span>
+                    <kbd className="px-2 py-0.5 bg-white text-[10px] font-bold text-gray-700 rounded-lg border border-gray-200 shadow-sm font-mono whitespace-nowrap ml-2">{s.keys}</kbd>
                   </div>
                 ))}
               </div>

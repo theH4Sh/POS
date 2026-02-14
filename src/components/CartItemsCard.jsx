@@ -95,8 +95,10 @@ const CartItemsCard = ({
                         <input
                           type="text"
                           inputMode="numeric"
+                          data-qty-input="true"
                           value={item.quantity}
                           onFocus={(e) => e.target.select()}
+
                           onChange={(e) => {
                             const val = e.target.value;
                             // Allow empty string or just the minus sign for easier typing/refunds
@@ -107,6 +109,17 @@ const CartItemsCard = ({
                             const num = parseInt(val, 10);
                             if (!isNaN(num)) {
                               onUpdateQuantity(item.id, num);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.altKey && (e.key === "=" || e.key === "+")) {
+                              e.preventDefault();
+                              onUpdateQuantity(item.id, Number(item.quantity || 0) + 1);
+                            } else if (e.altKey && (e.key === "-" || e.key === "_")) {
+                              e.preventDefault();
+                              onUpdateQuantity(item.id, Number(item.quantity || 0) - 1);
+                            } else if (e.key === "Enter") {
+                              e.target.blur();
                             }
                           }}
                           onBlur={(e) => {
@@ -168,19 +181,39 @@ const CartItemsCard = ({
         {/* Discount Section */}
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-gray-500">Discount</span>
-          <div className="flex bg-gray-100 p-1 rounded-lg">
-            {[0, 5, 10].map((val) => (
-              <button
-                key={val}
-                onClick={() => onDiscountChange(val)}
-                className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${discount === val
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-900'
-                  }`}
-              >
-                {val === 0 ? 'None' : `${val}%`}
-              </button>
-            ))}
+          <div className="flex items-center gap-2">
+            <div className="flex bg-gray-100 p-1 rounded-lg">
+              {[0, 3, 5, 10].map((val) => (
+                <button
+                  key={val}
+                  onClick={() => onDiscountChange(val)}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${discount === val
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                >
+                  {val === 0 ? 'None' : `${val}%`}
+                </button>
+              ))}
+            </div>
+            <div className="relative group">
+              <input
+                type="text"
+                inputMode="numeric"
+                data-discount-input="true"
+                value={discount}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "") { onDiscountChange(0); return; }
+                  const num = parseInt(val, 10);
+                  if (!isNaN(num)) onDiscountChange(num);
+                }}
+                onFocus={(e) => e.target.select()}
+                className="w-14 h-8 bg-gray-100 border border-transparent rounded-lg text-center text-xs font-bold text-gray-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all"
+                placeholder="%"
+              />
+              <span className="absolute right-2 top-1.5 text-[10px] font-bold text-gray-300 pointer-events-none">%</span>
+            </div>
           </div>
         </div>
 

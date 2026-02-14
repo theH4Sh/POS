@@ -168,7 +168,45 @@ const Checkout = () => {
   const shortcutActions = useMemo(() => ({
     focusSearch: () => { searchRef.current?.focus(); searchRef.current?.select(); },
     focusBarcode: () => { barcodeRef.current?.focus(); barcodeRef.current?.select(); },
+    focusLatestQuantity: () => {
+      const inputs = document.querySelectorAll('input[data-qty-input="true"]');
+      if (inputs.length > 0) {
+        const lastInput = inputs[inputs.length - 1];
+        lastInput.focus();
+        lastInput.select();
+      }
+    },
+    focusPrevItem: () => {
+      const inputs = Array.from(document.querySelectorAll('input[data-qty-input="true"]'));
+      const index = inputs.indexOf(document.activeElement);
+      if (index > 0) {
+        inputs[index - 1].focus();
+        inputs[index - 1].select();
+      }
+    },
+    focusNextItem: () => {
+      const inputs = Array.from(document.querySelectorAll('input[data-qty-input="true"]'));
+      const index = inputs.indexOf(document.activeElement);
+      if (index !== -1 && index < inputs.length - 1) {
+        inputs[index + 1].focus();
+        inputs[index + 1].select();
+      }
+    },
+    cycleDiscount: () => {
+      // Toggle logic: 0 -> 3 -> 5 -> 10 -> 0
+      let next = 0;
+      if (discount === 0) next = 3;
+      else if (discount === 3) next = 5;
+      else if (discount === 5) next = 10;
+      else next = 0;
+
+      setDiscount(next);
+      toast.success(`Discount set to ${next}%`);
+    },
     newCart: () => addNewCart(),
+
+
+
     deleteCart: () => deleteCart(activeCartIndex),
     checkout: () => handleCheckout(),
     printReceipt: () => window.print(),
