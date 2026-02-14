@@ -83,8 +83,8 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
                                 <User className="h-6 w-6" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black tracking-tight">Identity Profile</h2>
-                                <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mt-0.5">Edit credentials</p>
+                                <h2 className="text-xl font-black tracking-tight">Edit Profile</h2>
+                                <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest mt-0.5">Update account details</p>
                             </div>
                         </div>
                         <button
@@ -99,7 +99,7 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
                         {/* Username */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
-                                Username identity
+                                Username
                             </label>
                             <div className="relative group">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
@@ -118,7 +118,7 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
                         {/* New Password */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
-                                New access key <span className="text-gray-300 font-bold">(Optional)</span>
+                                New Password <span className="text-gray-300 font-bold">(Optional)</span>
                             </label>
                             <div className="relative group">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
@@ -143,7 +143,7 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
                         {newPassword && (
                             <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
-                                    Confirm access key
+                                    Confirm Password
                                 </label>
                                 <div className="relative group">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
@@ -152,7 +152,7 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         className="w-full pl-12 pr-5 py-3.5 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300"
-                                        placeholder="Confirm new access key"
+                                        placeholder="Confirm new password"
                                     />
                                 </div>
                             </div>
@@ -161,10 +161,10 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
                         {/* Current Password (Gatekeeper) */}
                         <div className="bg-indigo-50/50 p-6 rounded-[2rem] border-2 border-indigo-100 shadow-inner group">
                             <label className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] ml-1 flex items-center justify-between">
-                                Verification gate
+                                Current Password
                                 <span className="text-rose-500 bg-rose-100/50 px-2 py-0.5 rounded-full">Required</span>
                             </label>
-                            <p className="text-[11px] font-bold text-indigo-900/40 mb-3 mt-1 uppercase tracking-tight">Confirm current credentials to upgrade</p>
+                            <p className="text-[11px] font-bold text-indigo-900/40 mb-3 mt-1 uppercase tracking-tight">Required to save changes</p>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-300 group-focus-within:text-blue-500 transition-colors" />
                                 <input
@@ -172,7 +172,7 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
                                     className="w-full pl-12 pr-14 py-3.5 bg-white border-2 border-transparent rounded-xl focus:border-blue-500/50 outline-none transition-all font-bold text-gray-700 shadow-sm"
-                                    placeholder="Current Access Key"
+                                    placeholder="Enter current password"
                                     required
                                 />
                                 <button
@@ -205,7 +205,7 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
                                 onClick={onClose}
                                 className="flex-1 px-6 py-4 text-gray-400 font-black text-xs uppercase tracking-widest hover:bg-gray-50 hover:text-gray-900 rounded-2xl transition-all border border-transparent hover:border-gray-100"
                             >
-                                Abort
+                                Cancel
                             </button>
                             <button
                                 type="submit"
@@ -215,10 +215,10 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
                                 {loading ? (
                                     <>
                                         <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        Synchronizing
+                                        Saving...
                                     </>
                                 ) : (
-                                    "Update Identity"
+                                    "Save Changes"
                                 )}
                             </button>
                         </div>
