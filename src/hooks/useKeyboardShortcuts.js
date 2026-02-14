@@ -21,6 +21,7 @@ import { useEffect } from "react";
  * @param {Function} actions.focusPrevItem - Alt+ArrowUp
  * @param {Function} actions.focusNextItem - Alt+ArrowDown
  * @param {Function} actions.cycleDiscount - Alt+D
+ * @param {Function} actions.toggleCustomDiscount - Alt+C
  */
 export default function useKeyboardShortcuts(actions = {}) {
     useEffect(() => {
@@ -68,6 +69,10 @@ export default function useKeyboardShortcuts(actions = {}) {
                 case "d":
                 case "D":
                     if (actions.cycleDiscount) { actions.cycleDiscount(); matched = true; }
+                    break;
+                case "c":
+                case "C":
+                    if (actions.toggleCustomDiscount) { actions.toggleCustomDiscount(); matched = true; }
                     break;
 
                 // Cart operations (skip if typing in an input)

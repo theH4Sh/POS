@@ -9,6 +9,7 @@ const CartItemsCard = ({
   onCheckout,
   discount = 0,
   onDiscountChange = () => { },
+  showCustomDiscount = false,
 }) => {
   const scrollRef = useRef(null);
 
@@ -176,82 +177,108 @@ const CartItemsCard = ({
       </div>
 
       {/* Footer */}
-      <div className="p-6 border-t border-gray-100 bg-white space-y-5 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] z-20">
+      <div className="p-4 border-t border-gray-100 bg-white/80 backdrop-blur-xl space-y-3 shadow-[0_-15px_40px_-15px_rgba(0,0,0,0.05)] z-20 rounded-b-3xl">
 
-        {/* Discount Section */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-500">Discount</span>
+        {/* Discount Section - Compact Card */}
+        <div className="bg-gray-50/50 border border-gray-100/50 rounded-xl p-3 flex items-center justify-between group/discount hover:bg-white hover:shadow-sm transition-all duration-300">
           <div className="flex items-center gap-2">
-            <div className="flex bg-gray-100 p-1 rounded-lg">
+            <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg group-hover/discount:scale-105 transition-transform">
+              <span className="text-xs font-bold">%</span>
+            </div>
+            <div>
+              <span className="block text-xs font-bold text-gray-700">Discount</span>
+              <span className="block text-[9px] text-gray-400 font-medium uppercase tracking-wider">Alt + D</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex bg-gray-200/50 p-0.5 rounded-lg backdrop-blur-sm">
               {[0, 3, 5, 10].map((val) => (
                 <button
                   key={val}
                   onClick={() => onDiscountChange(val)}
-                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${discount === val
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-900'
+                  className={`px-2 py-1 rounded-md text-[10px] font-black transition-all duration-300 ${discount === val
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-gray-400 hover:text-gray-600'
                     }`}
                 >
-                  {val === 0 ? 'None' : `${val}%`}
+                  {val === 0 ? 'OFF' : `${val}%`}
                 </button>
               ))}
             </div>
-            <div className="relative group">
-              <input
-                type="text"
-                inputMode="numeric"
-                data-discount-input="true"
-                value={discount}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === "") { onDiscountChange(0); return; }
-                  const num = parseInt(val, 10);
-                  if (!isNaN(num)) onDiscountChange(num);
-                }}
-                onFocus={(e) => e.target.select()}
-                className="w-14 h-8 bg-gray-100 border border-transparent rounded-lg text-center text-xs font-bold text-gray-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all"
-                placeholder="%"
-              />
-              <span className="absolute right-2 top-1.5 text-[10px] font-bold text-gray-300 pointer-events-none">%</span>
-            </div>
+            {showCustomDiscount && (
+              <div className="relative group/input animate-slide-up">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  data-discount-input="true"
+                  value={discount}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "") { onDiscountChange(0); return; }
+                    const num = parseInt(val, 10);
+                    if (!isNaN(num)) onDiscountChange(num);
+                  }}
+                  onFocus={(e) => e.target.select()}
+                  className="w-12 h-7 bg-white border border-gray-200 rounded-lg text-center text-[10px] font-black text-gray-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm"
+                  placeholder="%"
+                />
+                <span className="absolute right-1.5 top-1.5 text-[9px] font-black text-gray-300 pointer-events-none">%</span>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between text-gray-500 text-sm">
-            <span>Subtotal</span>
-            <span className="font-mono">{Math.round(subtotal)}</span>
+        {/* Items Price Row */}
+        <div className="flex justify-between items-center px-1">
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Items Price</span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-[10px] font-bold text-gray-400">₨</span>
+            <span className="text-base font-black text-gray-700 font-mono leading-none">{Math.round(subtotal)}</span>
           </div>
-          {discount > 0 && (
-            <div className="flex justify-between text-red-500 text-sm font-medium">
-              <span>Discount</span>
-              <span className="font-mono">-{Math.round(discountAmount)}</span>
-            </div>
-          )}
         </div>
 
-        <div className="flex items-end justify-between pt-2 border-t border-gray-100">
-          <div>
-            <span className="block text-xs text-gray-400 font-medium uppercase tracking-wide">Total Amount</span>
-            <span className="block text-3xl font-black text-gray-900 tracking-tight mt-0.5">
-              <span className="text-xl align-top opacity-50 font-medium mr-1">₨</span>
-              {Math.round(total)}
-            </span>
+        {/* Global Total Area */}
+        <div className="pt-2 flex items-center justify-between border-t border-gray-100/50">
+          <div className="relative group/total">
+            <span className="block text-[9px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-0.5">Total</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-start gap-1">
+                <span className="text-base font-bold text-gray-400 mt-0.5 leading-none">₨</span>
+                <span className="text-3xl font-black text-gray-900 tracking-tighter leading-none group-hover/total:text-indigo-600 transition-colors duration-500">
+                  {Math.round(total)}
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500 ml-1 mb-0.5 animate-pulse" />
+                </span>
+              </div>
+              {discount > 0 && (
+                <div className="flex flex-col">
+                  <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black rounded-lg shadow-sm border border-emerald-200/50 flex items-center gap-1 animate-in fade-in zoom-in duration-300">
+                    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-ping" />
+                    SAVED ₨{Math.round(discountAmount)}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex gap-3">
+
+          <div className="flex items-center gap-3">
             <button
               onClick={onClearCart}
               disabled={cart.length === 0}
-              className="px-4 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 hover:text-red-600 hover:border-red-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-all uppercase tracking-widest disabled:opacity-0 py-2 px-1"
             >
-              Clear
+              Discard
             </button>
             <button
               onClick={onCheckout}
               disabled={cart.length === 0}
-              className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-black hover:shadow-lg hover:shadow-gray-900/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="group relative bg-gray-900 text-white pl-5 pr-4 py-3 rounded-xl font-black hover:bg-black hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.2)] active:scale-95 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-3 overflow-hidden"
             >
-              Checkout <span className="text-gray-400 text-lg">→</span>
+              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-500 group-hover:w-full transition-all duration-500 opacity-0 group-hover:opacity-10" />
+              <span className="relative text-[11px] tracking-wider uppercase">Confirm Payment</span>
+              <div className="relative p-1 bg-white/10 rounded-md group-hover:bg-white/20 transition-colors">
+                <span className="block text-sm translate-x-0 group-hover:translate-x-0.5 transition-transform">→</span>
+              </div>
             </button>
           </div>
         </div>

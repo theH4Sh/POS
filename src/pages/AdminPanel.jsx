@@ -308,6 +308,7 @@ export default function AdminPanel({ user, onLogout }) {
                 {[
                   { keys: "Alt + Q", action: "Focus Latest" },
                   { keys: "Alt + D", action: "Cycle Discount (0-10%)" },
+                  { keys: "Alt + C", action: "Toggle Custom Discount" },
                   { keys: "Alt + ↑/↓", action: "Switch Item" },
                   { keys: "↑/↓", action: "Row Nav" },
                   { keys: "Enter", action: "Select Result" },

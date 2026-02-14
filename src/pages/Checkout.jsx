@@ -11,6 +11,7 @@ import useKeyboardShortcuts from "../hooks/useKeyboardShortcuts";
 const Checkout = () => {
   const { user, carts, setCarts, activeCartIndex, setActiveCartIndex, discount, setDiscount } = useOutletContext();
   const [lastOrder, setLastOrder] = useState(null);
+  const [showCustomDiscount, setShowCustomDiscount] = useState(false);
 
   // Refs for focusing inputs via shortcuts
   const barcodeRef = useRef(null);
@@ -207,6 +208,10 @@ const Checkout = () => {
 
 
 
+    toggleCustomDiscount: () => {
+      setShowCustomDiscount(prev => !prev);
+      toast.success(`Custom discount input ${!showCustomDiscount ? 'enabled' : 'hidden'}`);
+    },
     deleteCart: () => deleteCart(activeCartIndex),
     checkout: () => handleCheckout(),
     printReceipt: () => window.print(),
@@ -216,7 +221,7 @@ const Checkout = () => {
     nextCart: () => {
       if (activeCartIndex < carts.length - 1) setActiveCartIndex(activeCartIndex + 1);
     },
-  }), [activeCartIndex, carts.length, cart, discount]);
+  }), [activeCartIndex, carts.length, cart, discount, showCustomDiscount]);
 
   useKeyboardShortcuts(shortcutActions);
 
@@ -287,6 +292,7 @@ const Checkout = () => {
             onCheckout={handleCheckout}
             discount={discount}
             onDiscountChange={setDiscount}
+            showCustomDiscount={showCustomDiscount}
           />
         </div>
 
