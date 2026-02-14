@@ -111,19 +111,18 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
                 <tr
                   key={p.id}
                   className="group hover:bg-blue-50/40 transition-all duration-200 cursor-default"
-                  onMouseEnter={() => setHoveredProduct(p)}
                   onMouseLeave={() => setHoveredProduct(null)}
                   onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
                 >
                   {/* Barcode */}
-                  <td className="px-6 py-5 whitespace-nowrap">
+                  <td className="px-6 py-5 whitespace-nowrap" onMouseEnter={() => setHoveredProduct(p)}>
                     <span className="font-mono text-[11px] text-gray-600 bg-gray-100 px-2 py-1 rounded-md border border-gray-200 group-hover:bg-white group-hover:border-blue-200 group-hover:text-blue-700 transition-colors font-semibold">
                       {p.barcode || "NONE"}
                     </span>
                   </td>
 
                   {/* Name & Category */}
-                  <td className="px-6 py-5">
+                  <td className="px-6 py-5" onMouseEnter={() => setHoveredProduct(p)}>
                     <div className="flex flex-col">
                       <span className="font-black text-gray-900 text-base group-hover:text-blue-800 transition-colors tracking-tight">{p.name}</span>
                       <div className="flex items-center gap-2 mt-1">
@@ -135,7 +134,7 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
                   </td>
 
                   {/* Pricing */}
-                  <td className="px-6 py-5 text-center flex items-center ">
+                  <td className="px-6 py-5 text-center flex items-center" onMouseEnter={() => setHoveredProduct(p)}>
                     <div className="inline-flex flex-col items-center gap-1 bg-gray-50 rounded-xl p-2 border border-gray-100 group-hover:bg-white group-hover:border-blue-100 transition-colors min-w-[100px]">
                       <div className="flex items-center justify-between w-full px-1">
                         <span className="text-[9px] font-black uppercase text-gray-400 tracking-widest">Buy</span>
@@ -150,7 +149,7 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
                   </td>
 
                   {/* Stock & Status */}
-                  <td className="px-6 py-5">
+                  <td className="px-6 py-5" onMouseEnter={() => setHoveredProduct(p)}>
                     <div className="flex flex-col items-center gap-2">
                       <div className="flex items-center gap-2">
                         <span className={`text-xl font-black font-mono tracking-tighter ${p.stock < 10 ? 'text-red-600 animate-pulse' : 'text-gray-900'}`}>
@@ -174,7 +173,7 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
                   </td>
 
                   {/* Actions */}
-                  <td className="px-6 py-5 text-right whitespace-nowrap">
+                  <td className="px-6 py-5 text-right whitespace-nowrap" onMouseEnter={() => setHoveredProduct(null)}>
                     {canEdit && (
                       <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
                         <button
