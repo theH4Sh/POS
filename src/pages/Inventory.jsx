@@ -91,11 +91,35 @@ const Inventory = () => {
     }
   };
 
+  const handleImport = async () => {
+    const result = await window.api.importInventory();
+    if (result.success) {
+      toast.success(result.message);
+      load();
+    } else if (result.message !== "Import cancelled") {
+      toast.error(result.message);
+    }
+  };
+
+  const handleExport = async () => {
+    const result = await window.api.exportInventory();
+    if (result.success) {
+      toast.success("Inventory exported successfully!");
+    } else if (result.message !== "Export cancelled") {
+      toast.error(result.message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-50 via-blue-50 to-indigo-100 p-8">
       <div className="max-w-[1200px] mx-auto space-y-8">
         <div className="rounded-3xl bg-white/70 backdrop-blur-xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.1)] border border-white overflow-hidden transition-all duration-500">
-          <InventoryHeader onAddProduct={() => setShowAddModal(true)} />
+          <InventoryHeader
+            onAddProduct={() => setShowAddModal(true)}
+            onImport={handleImport}
+            onExport={handleExport}
+            isAdmin={isAdmin}
+          />
 
           <div className="p-8 space-y-8">
             {/* Stats Cards */}

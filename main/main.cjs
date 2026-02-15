@@ -674,6 +674,142 @@ ipcMain.handle("orders:export", async (_, data) => {
   }
 });
 
+// Inventory Import/Export
+ipcMain.handle("medicine:export", async () => {
+  try {
+    if (!currentUser || currentUser.role !== "admin") {
+      return { success: false, message: "Unauthorized - admin only" };
+    }
+
+    const items = db.prepare("SELECT * FROM products").all();
+
+    // Format for Excel
+    const excelData = items.map(item => ({
+      "ID": item.id,
+      "Name": item.name,
+      "Barcode": item.barcode || "",
+      "Category": item.category || "others",
+      "Quantity": item.quantity,
+      "Purchase Price": item.purchasePrice,
+      "Sale Price": item.salePrice,
+      "Description": item.description || ""
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Inventory");
+
+    const { filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: "Export Product Inventory",
+      defaultPath: path.join(app.getPath("documents"), `Inventory_Export_${new Date().toISOString().split('T')[0]}.xlsx`),
+      filters: [{ name: "Excel Files", extensions: ["xlsx"] }]
+    });
+
+    if (filePath) {
+      XLSX.writeFile(wb, filePath);
+      return { success: true, filePath };
+    }
+    return { success: false, message: "Export cancelled" };
+  } catch (err) {
+    console.error("Inventory export error:", err);
+    return { success: false, message: "Export failed: " + err.message };
+  }
+});
+
+ipcMain.handle("medicine:import", async () => {
+  try {
+    if (!currentUser || currentUser.role !== "admin") {
+      return { success: false, message: "Unauthorized - admin only" };
+    }
+
+    const { filePaths } = await dialog.showOpenDialog(mainWindow, {
+      title: "Import Product Inventory",
+      filters: [{ name: "Excel Files", extensions: ["xlsx", "xls", "csv"] }],
+      properties: ["openFile"]
+    });
+
+    if (!filePaths || filePaths.length === 0) {
+      return { success: false, message: "Import cancelled" };
+    }
+
+    const workbook = XLSX.readFile(filePaths[0]);
+    const sheetName = workbook.SheetNames[0];
+    const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    let created = 0;
+    let updated = 0;
+    let errors = 0;
+
+    const upsertStmt = db.prepare(`
+      INSERT INTO products (id, name, barcode, category, quantity, purchasePrice, salePrice, description)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        barcode = excluded.barcode,
+        category = excluded.category,
+        quantity = excluded.quantity,
+        purchasePrice = excluded.purchasePrice,
+        salePrice = excluded.salePrice,
+        description = excluded.description
+    `);
+
+    const findByNameBarcodeStmt = db.prepare(`
+      SELECT id FROM products WHERE name = ? AND barcode = ?
+    `);
+
+    // Use a transaction for better performance
+    const transaction = db.transaction((rows) => {
+      for (const row of rows) {
+        try {
+          const name = row["Name"] || row["name"];
+          if (!name) continue;
+
+          const id = row["ID"] || row["id"];
+          const barcode = row["Barcode"] || row["barcode"] || "";
+          const category = row["Category"] || row["category"] || "others";
+          const quantity = parseInt(row["Quantity"] || row["quantity"] || 0);
+          const purchasePrice = String(row["Purchase Price"] || row["purchasePrice"] || "0");
+          const salePrice = String(row["Sale Price"] || row["salePrice"] || "0");
+          const description = row["Description"] || row["description"] || "";
+
+          let targetId = id;
+
+          // If no ID, try to find existing by name and barcode
+          if (!targetId) {
+            const existing = findByNameBarcodeStmt.get(name, barcode);
+            if (existing) {
+              targetId = existing.id;
+              updated++;
+            } else {
+              created++;
+            }
+          } else {
+            // Check if ID exists to increment updated/created counts correctly
+            const exists = db.prepare("SELECT 1 FROM products WHERE id = ?").get(targetId);
+            if (exists) updated++; else created++;
+          }
+
+          upsertStmt.run(targetId || null, name, barcode, category, quantity, purchasePrice, salePrice, description);
+        } catch (err) {
+          console.error("Error importing row:", row, err);
+          errors++;
+        }
+      }
+    });
+
+    transaction(data);
+
+    return {
+      success: true,
+      message: `Import complete: ${created} new items added, ${updated} items updated.${errors > 0 ? ` (${errors} errors)` : ""}`
+    };
+
+  } catch (err) {
+    console.error("Inventory import error:", err);
+    return { success: false, message: "Import failed: " + err.message };
+  }
+});
+
 // ===== START APP AFTER HANDLERS ARE REGISTERED =====
 
 app.whenReady().then(createWindow);
