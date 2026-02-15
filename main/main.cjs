@@ -423,9 +423,9 @@ ipcMain.handle("order:create", (_, data) => {
     console.log("- Final userId used for INSERT:", userId);
 
     const orderResult = db.prepare(`
-      INSERT INTO orders (items, total, userId, createdAt)
-      VALUES (?, ?, ?, ?)
-    `).run(JSON.stringify(data.items), data.total.toString(), userId, new Date().toISOString());
+      INSERT INTO orders (items, total, userId, discount, createdAt)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(JSON.stringify(data.items), data.total.toString(), userId, data.discount || 0, new Date().toISOString());
 
     console.log("- Order ID Created:", orderResult.lastInsertRowid);
 
@@ -516,6 +516,7 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
       recentOrders.push({
         id: order.id,
         total: order.total,
+        discount: order.discount || 0,
         itemCount: items.length,
         items: items, // Include full items for display
         createdAt: order.createdAt,

@@ -21,6 +21,7 @@ const orders = sqliteTable("orders", {
   items: text("items").notNull(),
   total: text("total").notNull(),
   userId: integer("userId").references(() => users.id),
+  discount: integer("discount").default(0),
   createdAt: text("createdAt").default(new Date().toISOString()),
 });
 
@@ -98,6 +99,13 @@ try {
   if (!autoPrintExists) {
     db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)").run("autoPrintCheckout", "false");
     console.log("✓ Migration: Initialized autoPrintCheckout setting");
+  }
+
+  // Check if discount column exists in orders table
+  const hasDiscount = tableInfo.some(col => col.name === 'discount');
+  if (!hasDiscount) {
+    db.prepare("ALTER TABLE orders ADD COLUMN discount INTEGER DEFAULT 0").run();
+    console.log("✓ Migration: Added discount column to orders table");
   }
 } catch (err) {
   console.error("Migration error:", err);

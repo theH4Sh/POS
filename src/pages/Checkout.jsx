@@ -158,6 +158,7 @@ const Checkout = () => {
       const result = await window.api.createOrder({
         items: cart,
         total: finalTotal,
+        discount: discountAmount,
         operatorId: user?.id, // Redundancy for attribution
       });
 

@@ -558,16 +558,37 @@ const Dashboard = ({ user }) => {
               {/* Total */}
               <div className="border-t border-gray-200 pt-4">
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border-2 border-blue-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Total Amount</p>
-                      <p className={`text-3xl font-black tracking-tight ${selectedOrder.total > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        Rs {Math.abs(Number(selectedOrder.total))}
-                      </p>
+                  <div className="space-y-4">
+                    {/* Subtotal before discount */}
+                    <div className="flex justify-between items-center text-gray-500">
+                      <span className="text-[10px] font-black uppercase tracking-widest">Subtotal</span>
+                      <span className="font-black">Rs {selectedOrder.items?.reduce((acc, item) => acc + (item.salePrice * item.quantity), 0).toLocaleString()}</span>
                     </div>
-                    {selectedOrder.total < 0 && (
-                      <span className="bg-red-100 text-red-600 text-xs font-black px-3 py-1.5 rounded-full border border-red-200 uppercase">Refund</span>
+
+                    {/* Discount line (only if exists) */}
+                    {(selectedOrder.discount > 0) && (
+                      <div className="flex justify-between items-center text-blue-600">
+                        <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                          Discount Applied
+                          <span className="bg-blue-600 text-white text-[9px] px-1.5 py-0.5 rounded-full">-{Math.round((selectedOrder.discount / (selectedOrder.items?.reduce((acc, item) => acc + (item.salePrice * item.quantity), 0) || 1)) * 100)}%</span>
+                        </span>
+                        <span className="font-black">- Rs {selectedOrder.discount.toLocaleString()}</span>
+                      </div>
                     )}
+
+                    <div className="h-px bg-blue-200/50"></div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Total Amount</p>
+                        <p className={`text-3xl font-black tracking-tight ${selectedOrder.total > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          Rs {Math.abs(Number(selectedOrder.total)).toLocaleString()}
+                        </p>
+                      </div>
+                      {selectedOrder.total < 0 && (
+                        <span className="bg-red-100 text-red-600 text-xs font-black px-3 py-1.5 rounded-full border border-red-200 uppercase">Refund</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
