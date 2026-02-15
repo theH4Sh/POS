@@ -1,7 +1,9 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
+const fs = require("fs");
 const { db, orm, products, orders } = require("./db.cjs");
 const bcrypt = require("bcryptjs");
+const XLSX = require("xlsx");
 
 let mainWindow;
 let currentUser = null; // Store current logged-in user
@@ -567,6 +569,108 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
   } catch (err) {
     console.error("Error getting dashboard stats:", err);
     throw err;
+  }
+});
+
+ipcMain.handle("orders:export", async (_, data) => {
+  try {
+    if (!currentUser || currentUser.role !== "admin") {
+      return { success: false, message: "Unauthorized - admin only" };
+    }
+
+    const { orders: exportData } = data;
+    if (!exportData || exportData.length === 0) {
+      return { success: false, message: "No data to export" };
+    }
+
+    // Prepare Summary Sheet & Calculate Totals
+    let totalRevenue = 0;
+    let totalCost = 0;
+    let totalDiscount = 0;
+
+    const summaryData = exportData.map(order => {
+      const orderTotal = parseFloat(order.total || 0);
+      const orderDiscount = parseFloat(order.discount || 0);
+
+      // Calculate order cost from items
+      let orderCost = 0;
+      order.items.forEach(item => {
+        orderCost += parseFloat(item.purchasePrice || 0) * item.quantity;
+      });
+
+      totalRevenue += orderTotal;
+      totalCost += orderCost;
+      totalDiscount += orderDiscount;
+
+      return {
+        "Order ID": order.id,
+        "Cashier": order.processedBy,
+        "Role": order.processorRole,
+        "Items Count": order.itemCount,
+        "Order Cost": orderCost,
+        "Discount": orderDiscount,
+        "Final Total": orderTotal,
+        "Profit/Loss": orderTotal - orderCost,
+        "Date": new Date(order.createdAt).toLocaleDateString(),
+        "Time": new Date(order.createdAt).toLocaleTimeString()
+      };
+    });
+
+    // Prepare Itemized Sheet
+    const itemizedData = [];
+    exportData.forEach(order => {
+      order.items.forEach(item => {
+        const itemRevenue = item.salePrice * item.quantity;
+        const itemCost = (parseFloat(item.purchasePrice) || 0) * item.quantity;
+        itemizedData.push({
+          "Order ID": order.id,
+          "Product Name": item.name,
+          "Category": item.category,
+          "Quantity": item.quantity,
+          "Unit Cost": item.purchasePrice,
+          "Unit Sale": item.salePrice,
+          "Total Cost": itemCost,
+          "Total Sale": itemRevenue,
+          "Item Profit": itemRevenue - itemCost,
+          "Date": new Date(order.createdAt).toLocaleDateString()
+        });
+      });
+    });
+
+    // Prepare Financial Overview Sheet
+    const financialOverview = [
+      { "Metric": "Total Sales (Revenue)", "Value": totalRevenue },
+      { "Metric": "Total Expenses (Cost of Goods)", "Value": totalCost },
+      { "Metric": "Total Discounts Given", "Value": totalDiscount },
+      { "Metric": "Net Profit/Loss", "Value": totalRevenue - totalCost },
+      { "Metric": "Average Order Value", "Value": totalRevenue / exportData.length },
+      { "Metric": "Total Orders Exported", "Value": exportData.length }
+    ];
+
+    const wb = XLSX.utils.book_new();
+    const wsOverview = XLSX.utils.json_to_sheet(financialOverview);
+    const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+    const wsItemized = XLSX.utils.json_to_sheet(itemizedData);
+
+    XLSX.utils.book_append_sheet(wb, wsOverview, "Financial Overview");
+    XLSX.utils.book_append_sheet(wb, wsSummary, "Orders Summary");
+    XLSX.utils.book_append_sheet(wb, wsItemized, "Itemized Details");
+
+    const { filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: "Export Analytics Data",
+      defaultPath: path.join(app.getPath("documents"), `Pharmacy_Export_${new Date().toISOString().split('T')[0]}.xlsx`),
+      filters: [{ name: "Excel Files", extensions: ["xlsx"] }]
+    });
+
+    if (filePath) {
+      XLSX.writeFile(wb, filePath);
+      return { success: true, filePath };
+    }
+    return { success: false, message: "Export cancelled" };
+
+  } catch (err) {
+    console.error("Export error:", err);
+    return { success: false, message: "Export failed: " + err.message };
   }
 });
 

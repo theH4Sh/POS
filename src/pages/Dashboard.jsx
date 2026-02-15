@@ -1,8 +1,9 @@
 
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar, X, Receipt, Search, Filter } from "lucide-react";
+import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar, X, Receipt, Search, Filter, FileSpreadsheet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const periodLabels = {
   daily: "Today",
@@ -85,6 +86,29 @@ const Dashboard = ({ user }) => {
     return matchesSearch && matchesProcessor;
   });
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (filteredOrders.length === 0) {
+      toast.error("No data to export!");
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const result = await window.api.exportOrders({ orders: filteredOrders });
+      if (result.success) {
+        toast.success("Excel file saved successfully!");
+      } else if (result.message !== "Export cancelled") {
+        toast.error(result.message || "Export failed");
+      }
+    } catch (err) {
+      console.error("Export error:", err);
+      toast.error("An error occurred during export");
+    } finally {
+      setExporting(false);
+    }
+  };
 
 
 
@@ -371,6 +395,18 @@ const Dashboard = ({ user }) => {
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Activity for {getPeriodLabel()}</p>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={handleExport}
+                disabled={exporting || recentOrders.length === 0}
+                className="flex items-center gap-2.5 px-6 py-2.5 bg-green-600 text-white rounded-2xl font-black text-sm hover:bg-green-700 transition-all shadow-xl shadow-green-500/20 active:scale-95 disabled:opacity-50 disabled:active:scale-100 group"
+              >
+                {exporting ? (
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <FileSpreadsheet className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                )}
+                <span>{exporting ? 'Exporting...' : 'Export to Excel'}</span>
+              </button>
               <span className="text-xs font-bold text-gray-500">{filteredOrders.length} of {recentOrders.length} records</span>
             </div>
           </div>

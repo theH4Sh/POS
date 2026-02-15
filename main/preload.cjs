@@ -24,4 +24,5 @@ contextBridge.exposeInMainWorld("api", {
   getDashboardStats: (params) => ipcRenderer.invoke("getDashboardStats", params),
   getSettings: () => ipcRenderer.invoke("settings:get"),
   updateSetting: (data) => ipcRenderer.invoke("settings:update", data),
+  exportOrders: (data) => ipcRenderer.invoke("orders:export", data),
 });
