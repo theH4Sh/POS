@@ -426,7 +426,7 @@ export default function AdminPanel() {
               </h3>
               <div className="space-y-2">
                 {[
-                  { keys: "Alt + Enter", action: "Instant Pay" },
+                  { keys: "Alt + Enter", action: "Checkout" },
                   { keys: "Alt + P", action: "Print" },
                   { keys: "Alt + N", action: "New Cart" },
                   { keys: "Alt + W", action: "Close Cart" },
@@ -443,13 +443,13 @@ export default function AdminPanel() {
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                Inventory & Modals
+                Inventory & Menu
               </h3>
               <div className="space-y-2">
                 {[
                   { keys: "Alt + A", action: "Add Product (Inventory)" },
-                  { keys: "Ctrl + Enter", action: "Submit / Save Modal" },
-                  { keys: "Esc", action: "Close Modal" },
+                  { keys: "Ctrl + Enter", action: "Submit / Save Menu" },
+                  { keys: "Esc", action: "Close Menu" },
                 ].map((s) => (
                   <div key={s.keys} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-purple-200 hover:bg-purple-50/30 transition-all group">
                     <span className="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">{s.action}</span>

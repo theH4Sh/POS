@@ -156,7 +156,7 @@ export const Navbar = () => {
                       <div className="p-2 bg-red-50 text-red-600 rounded-xl group-hover:bg-red-600 group-hover:text-white transition-colors">
                         <LogOut className="h-4 w-4" />
                       </div>
-                      <span className="text-sm">Sign Out System</span>
+                      <span className="text-sm">Logout</span>
                     </button>
                   </div>
                 </div>
