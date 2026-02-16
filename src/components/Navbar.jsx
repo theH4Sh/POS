@@ -2,15 +2,16 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { ShoppingCart, ListFilter, TrendingUp, LogOut, Lock, User } from "lucide-react";
 import { useState } from "react";
 import ProfileModal from "./ProfileModal";
+import { useAuth } from "../context/AuthContext";
 
-export const Navbar = ({ user, onLogout }) => {
+export const Navbar = () => {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   const handleLogout = async () => {
-    await window.api.logout();
-    onLogout();
+    await logout();
   };
 
   const handleAdminPanel = () => {

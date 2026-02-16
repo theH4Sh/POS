@@ -38,6 +38,7 @@ const users = sqliteTable("users", {
   username: text("username").notNull(),
   password: text("password").notNull(),
   role: text("role").notNull().default("cashier"), // 'admin' or 'cashier'
+  isRevoked: integer("isRevoked").notNull().default(0), // 0 = active, 1 = revoked
   createdAt: text("createdAt").default(new Date().toISOString()),
 });
 
@@ -67,6 +68,7 @@ db.exec(`
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'cashier',
+    isRevoked INTEGER NOT NULL DEFAULT 0,
     createdAt TEXT DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -106,6 +108,14 @@ try {
   if (!hasDiscount) {
     db.prepare("ALTER TABLE orders ADD COLUMN discount INTEGER DEFAULT 0").run();
     console.log("✓ Migration: Added discount column to orders table");
+  }
+  // Check if isRevoked column exists in users table
+  const userTableInfo = db.prepare("PRAGMA table_info(users)").all();
+  const hasIsRevoked = userTableInfo.some(col => col.name === 'isRevoked');
+
+  if (!hasIsRevoked) {
+    db.prepare("ALTER TABLE users ADD COLUMN isRevoked INTEGER NOT NULL DEFAULT 0").run();
+    console.log("✓ Migration: Added isRevoked column to users table");
   }
 } catch (err) {
   console.error("Migration error:", err);

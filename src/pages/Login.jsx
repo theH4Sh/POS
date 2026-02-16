@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { LogIn } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
-export default function Login({ onLogin }) {
+export default function Login() {
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,7 +16,7 @@ export default function Login({ onLogin }) {
     try {
       const result = await window.api.login(username, password);
       if (result.success) {
-        onLogin(result.user);
+        login(result.user);
         toast.success(`Welcome back, ${result.user.username}!`);
       } else {
         toast.error(result.message);

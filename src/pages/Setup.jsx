@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import toast from "react-hot-toast";
 import { UserPlus, ShieldCheck, Lock, ArrowRight, Sparkles } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
-export default function Setup({ onSetupComplete }) {
+export default function Setup() {
+    const { completeSetup } = useAuth();
     const [formData, setFormData] = useState({
         username: "",
         password: "",
@@ -40,7 +42,7 @@ export default function Setup({ onSetupComplete }) {
 
             if (result.success) {
                 toast.success("System initialized successfully!");
-                onSetupComplete(result.user);
+                completeSetup(result.user);
             } else {
                 toast.error(result.message || "Setup failed");
             }

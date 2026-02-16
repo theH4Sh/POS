@@ -77,6 +77,10 @@ ipcMain.handle("auth:login", async (_, { username, password }) => {
       return { success: false, message: "Invalid username or password" };
     }
 
+    if (user.isRevoked) {
+      return { success: false, message: "Account has been revoked. Please contact administrator." };
+    }
+
     // Verify hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -214,7 +218,7 @@ ipcMain.handle("auth:getCashiers", () => {
     if (!currentUser || currentUser.role !== "admin") {
       return [];
     }
-    const cashiers = db.prepare(`SELECT id, username, role, createdAt FROM users WHERE role = 'cashier'`).all();
+    const cashiers = db.prepare(`SELECT id, username, role, createdAt FROM users WHERE role = 'cashier' AND isRevoked = 0`).all();
     return cashiers;
   } catch (err) {
     console.error("Error fetching cashiers:", err);
@@ -238,7 +242,7 @@ ipcMain.handle("auth:deleteCashier", async (_, id) => {
       return { success: false, message: "Cannot delete administrators" };
     }
 
-    db.prepare(`DELETE FROM users WHERE id = ?`).run(id);
+    db.prepare(`UPDATE users SET isRevoked = 1 WHERE id = ?`).run(id);
     return { success: true, message: `Account '${user.username}' revoked successfully` };
   } catch (err) {
     console.error("Delete cashier error:", err);

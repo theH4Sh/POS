@@ -1,9 +1,9 @@
-
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar, X, Receipt, Search, Filter, FileSpreadsheet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 const periodLabels = {
   daily: "Today",
@@ -46,7 +46,8 @@ const StatCard = ({ icon: IconComponent, label, value, subtext, color, trend }) 
   </div>
 );
 
-const Dashboard = ({ user }) => {
+const Dashboard = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {

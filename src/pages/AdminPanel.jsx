@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Users, Plus, LogOut, Trash2, Keyboard, Shield, Activity, User, Settings as SettingsIcon, Printer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
-export default function AdminPanel({ user, onLogout }) {
+export default function AdminPanel() {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if not admin
+  // Redirect if not admin (only if logged in)
   useEffect(() => {
-    if (user?.role !== "admin") {
+    if (user && user.role !== "admin") {
       navigate("/");
     }
   }, [user, navigate]);
@@ -19,6 +21,15 @@ export default function AdminPanel({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState({ autoPrintCheckout: false });
   const [settingsLoading, setSettingsLoading] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     loadCashiers();
@@ -32,7 +43,7 @@ export default function AdminPanel({ user, onLogout }) {
     } catch (err) {
       console.error("Error loading settings:", err);
     } finally {
-      setSettingsLoading(false);
+      if (isMounted.current) setSettingsLoading(false);
     }
   };
 
@@ -43,7 +54,7 @@ export default function AdminPanel({ user, onLogout }) {
     } catch (err) {
       console.error("Error loading cashiers:", err);
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   };
 
@@ -71,12 +82,16 @@ export default function AdminPanel({ user, onLogout }) {
   };
 
   const handleDeleteCashier = async (cashier) => {
-    if (!window.confirm(`Are you sure you want to remove '${cashier.username}'?`)) {
-      return;
-    }
+    setConfirmDelete(cashier);
+  };
+
+  const confirmDeleteAction = async () => {
+    if (!confirmDelete) return;
+    const cashierId = confirmDelete.id;
+    setConfirmDelete(null);
 
     try {
-      const result = await window.api.deleteCashier(cashier.id);
+      const result = await window.api.deleteCashier(cashierId);
       if (result.success) {
         toast.success(result.message);
         loadCashiers();
@@ -90,8 +105,10 @@ export default function AdminPanel({ user, onLogout }) {
   };
 
   const handleLogout = async () => {
-    await window.api.logout();
-    onLogout();
+    // Add a small delay to allow any pending UI updates to settle
+    // This helps prevent rendering hangs during fast transitions
+    await new Promise((r) => setTimeout(r, 150));
+    await logout();
   };
 
   const handleToggleSetting = async (key, currentValue) => {
@@ -457,6 +474,37 @@ export default function AdminPanel({ user, onLogout }) {
             </div>
           </div>
         </div>
+        {/* Confirmation Modal */}
+        {confirmDelete && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="p-8 text-center">
+                <div className="mx-auto w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-6">
+                  <Trash2 className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Remove Cashier?</h3>
+                <p className="text-gray-500 font-medium">
+                  Are you sure you want to remove <span className="text-gray-900 font-bold">'{confirmDelete.username}'</span>?
+                  This user will no longer be able to log in.
+                </p>
+              </div>
+              <div className="p-6 bg-gray-50 flex gap-3">
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="flex-1 px-6 py-3 bg-white text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-100 transition-all border border-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteAction}
+                  className="flex-1 px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-all shadow-lg shadow-red-200"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

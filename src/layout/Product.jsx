@@ -1,9 +1,13 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import useKeyboardShortcuts from "../hooks/useKeyboardShortcuts";
+import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 
-const Product = ({ user, onLogout, cartState }) => {
+const Product = () => {
   const navigate = useNavigate();
+  const cartState = useCart();
+  const { user, logout } = useAuth();
 
   // Global navigation shortcuts
   useKeyboardShortcuts({
@@ -14,9 +18,9 @@ const Product = ({ user, onLogout, cartState }) => {
 
   return (
     <div className="w-full">
-      <Navbar user={user} onLogout={onLogout} />
+      <Navbar />
       <div className="">
-        <Outlet context={{ user, onLogout, ...cartState }} />
+        <Outlet context={{ user, logout, ...cartState }} />
       </div>
     </div>
   );
