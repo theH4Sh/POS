@@ -11,6 +11,20 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateSuccess })
     const [message, setMessage] = useState(null);
     const [loading, setLoading] = useState(false);
 
+    // Keyboard shortcuts
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") {
+                onClose();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen, onClose]);
+
     // Sync state with user data when it arrives or modal opens
     useEffect(() => {
         if (isOpen && user) {

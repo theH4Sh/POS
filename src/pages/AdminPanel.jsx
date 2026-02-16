@@ -26,10 +26,17 @@ export default function AdminPanel() {
 
   useEffect(() => {
     isMounted.current = true;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && confirmDelete) {
+        setConfirmDelete(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
       isMounted.current = false;
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [confirmDelete]);
 
   useEffect(() => {
     loadCashiers();
