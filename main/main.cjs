@@ -21,7 +21,8 @@ function createWindow() {
 
   mainWindow.removeMenu();
   mainWindow.maximize()
-  mainWindow.loadURL("http://localhost:5173");
+  //mainWindow.loadURL("http://localhost:5173");
+  mainWindow.loadFile(path.join(__dirname, "../renderer-dist/index.html"));
 }
 
 // ===== REGISTER ALL HANDLERS FIRST =====

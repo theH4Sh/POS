@@ -3,19 +3,44 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "main/main.cjs",
+  "build": {
+    "appId": "com.pharmacy.pos",
+    "productName": "Pharmacy POS",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "main/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
   "scripts": {
     "dev": "vite",
     "electron": "electron main/main.cjs",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
+    "dist": "npm run build && electron-builder",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
     "drizzle-orm": "^0.45.1",
-    "electron": "^39.2.7",
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -30,6 +55,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.23",
+    "electron": "^39.2.7",
     "electron-builder": "^26.7.0",
     "electron-rebuild": "^3.2.9",
     "eslint": "^9.39.1",
