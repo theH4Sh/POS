@@ -1,10 +1,25 @@
+const path = require("path");
+const fs = require("fs");
+const { app } = require("electron");
 const Database = require("better-sqlite3");
 const { drizzle } = require("drizzle-orm/better-sqlite3");
 const { sqliteTable, integer, text } = require("drizzle-orm/sqlite-core");
 
-const db = new Database("pharmacy.db");
+// Step 1: Determine writable path for DB
+const userDataPath = app.getPath("userData");
+const dbPath = path.join(userDataPath, "pharmacy.db");
 
-// Products/Medicines schema
+// Step 2: Copy default DB if it doesn't exist yet
+const defaultDbPath = path.join(__dirname, "../pharmacy.db"); // optional pre-filled DB in main/
+if (!fs.existsSync(dbPath) && fs.existsSync(defaultDbPath)) {
+  fs.copyFileSync(defaultDbPath, dbPath);
+  console.log("✓ Default database copied to userData folder");
+}
+
+// Step 3: Initialize better-sqlite3 with writable path
+const db = new Database(dbPath, { verbose: console.log });
+
+// Step 4: Define schema using Drizzle ORM
 const products = sqliteTable("products", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -25,24 +40,22 @@ const orders = sqliteTable("orders", {
   createdAt: text("createdAt").default(new Date().toISOString()),
 });
 
-// Settings schema
 const settings = sqliteTable("settings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   key: text("key").unique().notNull(),
   value: text("value").notNull(),
 });
 
-// Users schema for authentication
 const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   username: text("username").notNull(),
   password: text("password").notNull(),
-  role: text("role").notNull().default("cashier"), // 'admin' or 'cashier'
-  isRevoked: integer("isRevoked").notNull().default(0), // 0 = active, 1 = revoked
+  role: text("role").notNull().default("cashier"),
+  isRevoked: integer("isRevoked").notNull().default(0),
   createdAt: text("createdAt").default(new Date().toISOString()),
 });
 
-// Create tables if not exists
+// Step 5: Ensure tables and migrations
 db.exec(`
   CREATE TABLE IF NOT EXISTS products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,6 +73,7 @@ db.exec(`
     items TEXT NOT NULL,
     total TEXT NOT NULL,
     userId INTEGER REFERENCES users(id),
+    discount INTEGER DEFAULT 0,
     createdAt TEXT DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -77,54 +91,33 @@ db.exec(`
     key TEXT UNIQUE NOT NULL,
     value TEXT NOT NULL
   );
-
-  -- Migration: Add userId to orders if it doesn't exist
-  PRAGMA foreign_keys=OFF;
-  BEGIN TRANSACTION;
-  SELECT name FROM sqlite_master WHERE type='table' AND name='orders' AND sql LIKE '%userId%';
-  -- The following logic is handled better in JS for better-sqlite3
-  COMMIT;
-  PRAGMA foreign_keys=ON;
 `);
 
 try {
-  // Check if userId column exists in orders table
+  // Add missing columns for migrations if needed
   const tableInfo = db.prepare("PRAGMA table_info(orders)").all();
-  const hasUserId = tableInfo.some(col => col.name === 'userId');
-
-  if (!hasUserId) {
-    db.prepare("ALTER TABLE orders ADD COLUMN userId INTEGER REFERENCES users(id)").run();
-    console.log("✓ Migration: Added userId column to orders table");
-  }
-  // Ensure autoPrintCheckout setting exists
-  const autoPrintExists = db.prepare("SELECT 1 FROM settings WHERE key = ?").get("autoPrintCheckout");
-  if (!autoPrintExists) {
-    db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)").run("autoPrintCheckout", "false");
-    console.log("✓ Migration: Initialized autoPrintCheckout setting");
-  }
-
-  // Check if discount column exists in orders table
-  const hasDiscount = tableInfo.some(col => col.name === 'discount');
-  if (!hasDiscount) {
+  if (!tableInfo.some(c => c.name === "discount")) {
     db.prepare("ALTER TABLE orders ADD COLUMN discount INTEGER DEFAULT 0").run();
     console.log("✓ Migration: Added discount column to orders table");
   }
-  // Check if isRevoked column exists in users table
-  const userTableInfo = db.prepare("PRAGMA table_info(users)").all();
-  const hasIsRevoked = userTableInfo.some(col => col.name === 'isRevoked');
 
-  if (!hasIsRevoked) {
+  const userTableInfo = db.prepare("PRAGMA table_info(users)").all();
+  if (!userTableInfo.some(c => c.name === "isRevoked")) {
     db.prepare("ALTER TABLE users ADD COLUMN isRevoked INTEGER NOT NULL DEFAULT 0").run();
     console.log("✓ Migration: Added isRevoked column to users table");
+  }
+
+  // Ensure default settings exist
+  const autoPrintExists = db.prepare("SELECT 1 FROM settings WHERE key=?").get("autoPrintCheckout");
+  if (!autoPrintExists) {
+    db.prepare("INSERT INTO settings (key,value) VALUES (?,?)").run("autoPrintCheckout", "false");
+    console.log("✓ Migration: Initialized autoPrintCheckout setting");
   }
 } catch (err) {
   console.error("Migration error:", err);
 }
 
-const bcrypt = require("bcryptjs");
-
-// Default admin creation removed. Admin must be registered via the Setup flow.
-
+// Step 6: Initialize ORM
 const orm = drizzle(db);
 
 module.exports = { db, orm, products, orders, users, settings };

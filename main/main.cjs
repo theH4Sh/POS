@@ -21,8 +21,13 @@ function createWindow() {
 
   mainWindow.removeMenu();
   mainWindow.maximize()
-  //mainWindow.loadURL("http://localhost:5173");
-  mainWindow.loadFile(path.join(__dirname, "../renderer-dist/index.html"));
+
+  if (app.isPackaged) {
+    mainWindow.loadFile(path.join(__dirname, "../renderer-dist/index.html"));
+  } else {
+    mainWindow.loadURL("http://localhost:5173");
+    mainWindow.webContents.openDevTools();
+  }
 }
 
 // ===== REGISTER ALL HANDLERS FIRST =====

@@ -11,7 +11,7 @@
       "output": "release"
     },
     "files": [
-      "dist/**/*",
+      "renderer-dist/**/*",
       "main/**/*",
       "node_modules/**/*",
       "package.json"
