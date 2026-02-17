@@ -41,7 +41,7 @@ export default function Login() {
                 <LogIn className="h-6 w-6 text-white" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Pharmacy POS</h1>
+            <h1 className="text-3xl font-bold text-gray-900 leading-tight">Shah G<br />Medical Store</h1>
             <p className="text-gray-600">Sign in to your account</p>
           </div>
 
@@ -94,7 +94,7 @@ export default function Login() {
 
         {/* Footer */}
         <p className="text-center text-white/70 text-sm mt-6">
-          © 2026 Pharmacy Management System
+          © 2026 Shah G Medical Store CMS
         </p>
       </div>
     </div>

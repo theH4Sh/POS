@@ -19,8 +19,9 @@ function createWindow() {
     },
   });
 
+  mainWindow.removeMenu();
+  mainWindow.maximize()
   mainWindow.loadURL("http://localhost:5173");
-  mainWindow.webContents.openDevTools(); // For debugging
 }
 
 // ===== REGISTER ALL HANDLERS FIRST =====
