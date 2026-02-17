@@ -13,7 +13,6 @@
     "files": [
       "renderer-dist/**/*",
       "main/**/*",
-      "node_modules/**/*",
       "package.json"
     ],
     "win": {
@@ -22,8 +21,9 @@
     },
     "nsis": {
       "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Pharmacy POS"
     }
   },
   "scripts": {
