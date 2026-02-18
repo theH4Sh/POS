@@ -27,4 +27,5 @@ contextBridge.exposeInMainWorld("api", {
   exportOrders: (data) => ipcRenderer.invoke("orders:export", data),
   importInventory: () => ipcRenderer.invoke("medicine:import"),
   exportInventory: () => ipcRenderer.invoke("medicine:export"),
+  print: () => ipcRenderer.invoke("system:print"),
 });

@@ -30,6 +30,15 @@ function createWindow() {
   }
 }
 
+// ===== SYSTEM HANDLERS =====
+ipcMain.handle("system:print", () => {
+  if (mainWindow) {
+    mainWindow.webContents.print({ silent: true, printBackground: true });
+    return { success: true };
+  }
+  return { success: false, message: "No active window" };
+});
+
 // ===== REGISTER ALL HANDLERS FIRST =====
 
 // ===== SYSTEM STATUS & SETUP HANDLERS =====
