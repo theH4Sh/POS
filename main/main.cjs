@@ -297,6 +297,9 @@ ipcMain.handle("formula:add", (_, { name }) => {
 
 ipcMain.handle("formula:delete", (_, id) => {
   try {
+    if (!currentUser || currentUser.role !== "admin") {
+      return { success: false, message: "Unauthorized - admin only" };
+    }
     // Check if any products reference this formula
     const count = db.prepare("SELECT COUNT(*) as count FROM products WHERE formulaId = ?").get(id).count;
     if (count > 0) {

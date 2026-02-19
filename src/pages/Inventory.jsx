@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import { CheckCircle2, AlertTriangle, XCircle, Boxes } from "lucide-react";
 import AddProductModal from "../components/AddProductModal";
 import EditProductModal from "../components/EditProductModal";
+import FormulaManagerModal from "../components/FormulaManagerModal";
 import InventoryHeader from "../components/InventoryHeader";
 import InventorySearch from "../components/InventorySearch";
 import InventoryTable from "../components/InventoryTable";
@@ -16,6 +17,7 @@ const Inventory = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'in-stock', 'low-stock', 'out-of-stock'
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [showFormulaManager, setShowFormulaManager] = useState(false);
 
   const isAdmin = user?.role === "admin";
 
@@ -119,6 +121,7 @@ const Inventory = () => {
             onAddProduct={() => setShowAddModal(true)}
             onImport={handleImport}
             onExport={handleExport}
+            onManageFormulas={() => setShowFormulaManager(true)}
             isAdmin={isAdmin}
           />
 
@@ -259,6 +262,13 @@ const Inventory = () => {
         onClose={() => setShowAddModal(false)}
         onSuccess={load}
       />
+
+      {isAdmin && (
+        <FormulaManagerModal
+          isOpen={showFormulaManager}
+          onClose={() => setShowFormulaManager(false)}
+        />
+      )}
     </div>
   );
 };
