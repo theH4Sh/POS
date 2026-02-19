@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { CheckCircle2, AlertTriangle, XCircle, Boxes } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, Boxes, Trash2 } from "lucide-react";
 import AddProductModal from "../components/AddProductModal";
 import EditProductModal from "../components/EditProductModal";
 import FormulaManagerModal from "../components/FormulaManagerModal";
@@ -18,8 +18,19 @@ const Inventory = () => {
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'in-stock', 'low-stock', 'out-of-stock'
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [showFormulaManager, setShowFormulaManager] = useState(false);
+  const [deletingProduct, setDeletingProduct] = useState(null);
 
   const isAdmin = user?.role === "admin";
+
+  // Escape key to close delete confirmation
+  useEffect(() => {
+    if (!deletingProduct) return;
+    const handleKey = (e) => {
+      if (e.key === "Escape") setDeletingProduct(null);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [deletingProduct]);
 
   const load = useCallback(async () => {
     const medicines = await window.api.listMedicines();
@@ -82,15 +93,21 @@ const Inventory = () => {
     }
   };
 
-  const handleDelete = async (product) => {
-    if (confirm(`Are you sure you want to delete "${product.name}"? This action cannot be undone.`)) {
-      try {
-        await window.api.deleteMedicine(product.id);
-        load(); // Reload the list
-      } catch (err) {
-        console.error("Failed to delete product:", err);
-        toast.error("Failed to delete product");
-      }
+  const handleDelete = (product) => {
+    setDeletingProduct(product);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingProduct) return;
+    try {
+      await window.api.deleteMedicine(deletingProduct.id);
+      toast.success(`"${deletingProduct.name}" deleted`);
+      setDeletingProduct(null);
+      load();
+    } catch (err) {
+      console.error("Failed to delete product:", err);
+      toast.error("Failed to delete product");
+      setDeletingProduct(null);
     }
   };
 
@@ -268,6 +285,40 @@ const Inventory = () => {
           isOpen={showFormulaManager}
           onClose={() => setShowFormulaManager(false)}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingProduct && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-100 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="bg-red-100 p-2.5 rounded-xl">
+                <Trash2 className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-gray-900">Delete Product</h3>
+                <p className="text-xs text-gray-500 mt-0.5">This action cannot be undone</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Are you sure you want to delete <span className="font-bold text-gray-900">"{deletingProduct.name}"</span>?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeletingProduct(null)}
+                className="flex-1 h-11 rounded-xl border-2 border-gray-100 text-gray-500 font-bold text-sm hover:bg-gray-50 transition-all active:scale-[0.98]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 h-11 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all active:scale-[0.98]"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
