@@ -20,6 +20,11 @@ if (!fs.existsSync(dbPath) && fs.existsSync(defaultDbPath)) {
 const db = new Database(dbPath, { verbose: console.log });
 
 // Step 4: Define schema using Drizzle ORM
+const formulas = sqliteTable("formulas", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").unique().notNull(),
+});
+
 const products = sqliteTable("products", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -29,6 +34,7 @@ const products = sqliteTable("products", {
   purchasePrice: text("purchasePrice").notNull().default("0"),
   salePrice: text("salePrice").notNull().default("0"),
   description: text("description").default(""),
+  formulaId: integer("formulaId").references(() => formulas.id),
 });
 
 const orders = sqliteTable("orders", {
@@ -57,6 +63,11 @@ const users = sqliteTable("users", {
 
 // Step 5: Ensure tables and migrations
 db.exec(`
+  CREATE TABLE IF NOT EXISTS formulas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -65,7 +76,8 @@ db.exec(`
     quantity INTEGER NOT NULL DEFAULT 0,
     purchasePrice TEXT NOT NULL DEFAULT '0',
     salePrice TEXT NOT NULL DEFAULT '0',
-    description TEXT DEFAULT ''
+    description TEXT DEFAULT '',
+    formulaId INTEGER REFERENCES formulas(id)
   );
 
   CREATE TABLE IF NOT EXISTS orders (
@@ -107,6 +119,13 @@ try {
     console.log("✓ Migration: Added isRevoked column to users table");
   }
 
+  // Add formulaId column to products if missing
+  const productsTableInfo = db.prepare("PRAGMA table_info(products)").all();
+  if (!productsTableInfo.some(c => c.name === "formulaId")) {
+    db.prepare("ALTER TABLE products ADD COLUMN formulaId INTEGER REFERENCES formulas(id)").run();
+    console.log("✓ Migration: Added formulaId column to products table");
+  }
+
   // Ensure default settings exist
   const autoPrintExists = db.prepare("SELECT 1 FROM settings WHERE key=?").get("autoPrintCheckout");
   if (!autoPrintExists) {
@@ -120,4 +139,4 @@ try {
 // Step 6: Initialize ORM
 const orm = drizzle(db);
 
-module.exports = { db, orm, products, orders, users, settings };
+module.exports = { db, orm, products, orders, users, settings, formulas };

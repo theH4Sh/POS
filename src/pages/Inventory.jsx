@@ -51,7 +51,8 @@ const Inventory = () => {
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.barcode && p.barcode.includes(search));
+      (p.barcode && p.barcode.includes(search)) ||
+      (p.formulaName && p.formulaName.toLowerCase().includes(search.toLowerCase()));
 
     const matchesStatus =
       statusFilter === "all" ||

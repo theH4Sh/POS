@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const { db, orm, products, orders } = require("./db.cjs");
+const { db, orm, products, orders, formulas } = require("./db.cjs");
 const bcrypt = require("bcryptjs");
 const XLSX = require("xlsx");
 
@@ -266,13 +266,59 @@ ipcMain.handle("auth:deleteCashier", async (_, id) => {
   }
 });
 
+// ===== FORMULA HANDLERS =====
+
+ipcMain.handle("formula:list", () => {
+  try {
+    return db.prepare("SELECT * FROM formulas ORDER BY name ASC").all();
+  } catch (err) {
+    console.error("Error listing formulas:", err);
+    return [];
+  }
+});
+
+ipcMain.handle("formula:add", (_, { name }) => {
+  try {
+    if (!name || !name.trim()) {
+      throw new Error("Formula name is required");
+    }
+    const result = db.prepare("INSERT INTO formulas (name) VALUES (?)").run(name.trim());
+    return { id: result.lastInsertRowid, name: name.trim() };
+  } catch (err) {
+    if (err.message?.includes("UNIQUE constraint")) {
+      // Return existing formula instead of error
+      const existing = db.prepare("SELECT * FROM formulas WHERE name = ?").get(name.trim());
+      return existing;
+    }
+    console.error("Error adding formula:", err);
+    throw err;
+  }
+});
+
+ipcMain.handle("formula:delete", (_, id) => {
+  try {
+    // Check if any products reference this formula
+    const count = db.prepare("SELECT COUNT(*) as count FROM products WHERE formulaId = ?").get(id).count;
+    if (count > 0) {
+      return { success: false, message: `Cannot delete: ${count} product(s) use this formula` };
+    }
+    db.prepare("DELETE FROM formulas WHERE id = ?").run(id);
+    return { success: true };
+  } catch (err) {
+    console.error("Error deleting formula:", err);
+    return { success: false, message: err.message };
+  }
+});
+
+// ===== MEDICINE HANDLERS =====
+
 // Add product
 ipcMain.handle("medicine:add", (_, data) => {
   try {
     db.prepare(`
-      INSERT INTO products (name, barcode, category, quantity, purchasePrice, salePrice, description)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(data.name, data.barcode, data.category, data.quantity, data.purchasePrice, data.salePrice, data.description);
+      INSERT INTO products (name, barcode, category, quantity, purchasePrice, salePrice, description, formulaId)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(data.name, data.barcode, data.category, data.quantity, data.purchasePrice, data.salePrice, data.description, data.formulaId || null);
     return true;
   } catch (err) {
     console.error("Error adding product:", err);
@@ -280,10 +326,14 @@ ipcMain.handle("medicine:add", (_, data) => {
   }
 });
 
-// List all products
+// List all products (with formula name)
 ipcMain.handle("medicine:list", () => {
   try {
-    const result = db.prepare(`SELECT * FROM products`).all();
+    const result = db.prepare(`
+      SELECT p.*, f.name as formulaName
+      FROM products p
+      LEFT JOIN formulas f ON p.formulaId = f.id
+    `).all();
     return result || [];
   } catch (err) {
     console.error("Error listing products:", err);
@@ -291,7 +341,7 @@ ipcMain.handle("medicine:list", () => {
   }
 });
 
-// Search product by barcode or name
+// Search product by barcode, name, or formula
 ipcMain.handle("medicine:search", (_, query) => {
   try {
     if (!query || query.trim() === "") {
@@ -307,16 +357,18 @@ ipcMain.handle("medicine:search", (_, query) => {
 
     if (isBarcode) {
       results = db.prepare(`
-        SELECT * FROM products 
-        WHERE barcode = ?
+        SELECT p.*, f.name as formulaName FROM products p
+        LEFT JOIN formulas f ON p.formulaId = f.id
+        WHERE p.barcode = ?
       `).all(query);
     } else {
       results = db.prepare(`
-        SELECT * FROM products 
-        WHERE name LIKE ?
-        ORDER BY name ASC
+        SELECT p.*, f.name as formulaName FROM products p
+        LEFT JOIN formulas f ON p.formulaId = f.id
+        WHERE p.name LIKE ? OR f.name LIKE ?
+        ORDER BY p.name ASC
         LIMIT 10
-      `).all(`%${query}%`);
+      `).all(`%${query}%`, `%${query}%`);
     }
 
     return results || [];
@@ -357,7 +409,7 @@ ipcMain.handle("medicine:update", (_, data) => {
     db.prepare(`
       UPDATE products SET
         name = ?, barcode = ?, category = ?, quantity = ?,
-        purchasePrice = ?, salePrice = ?, description = ?
+        purchasePrice = ?, salePrice = ?, description = ?, formulaId = ?
       WHERE id = ?
     `).run(
       data.name ?? "",
@@ -367,6 +419,7 @@ ipcMain.handle("medicine:update", (_, data) => {
       String(data.purchasePrice ?? "0"),
       String(data.salePrice ?? "0"),
       data.description ?? "",
+      data.formulaId || null,
       data.id
     );
 
@@ -701,7 +754,11 @@ ipcMain.handle("medicine:export", async () => {
       return { success: false, message: "Unauthorized - admin only" };
     }
 
-    const items = db.prepare("SELECT * FROM products").all();
+    const items = db.prepare(`
+      SELECT p.*, f.name as formulaName
+      FROM products p
+      LEFT JOIN formulas f ON p.formulaId = f.id
+    `).all();
 
     // Format for Excel
     const excelData = items.map(item => ({
@@ -709,6 +766,7 @@ ipcMain.handle("medicine:export", async () => {
       "Name": item.name,
       "Barcode": item.barcode || "",
       "Category": item.category || "others",
+      "Formula": item.formulaName || "",
       "Quantity": item.quantity,
       "Purchase Price": item.purchasePrice,
       "Sale Price": item.salePrice,
@@ -761,8 +819,8 @@ ipcMain.handle("medicine:import", async () => {
     let errors = 0;
 
     const upsertStmt = db.prepare(`
-      INSERT INTO products (id, name, barcode, category, quantity, purchasePrice, salePrice, description)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO products (id, name, barcode, category, quantity, purchasePrice, salePrice, description, formulaId)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         name = excluded.name,
         barcode = excluded.barcode,
@@ -770,7 +828,8 @@ ipcMain.handle("medicine:import", async () => {
         quantity = excluded.quantity,
         purchasePrice = excluded.purchasePrice,
         salePrice = excluded.salePrice,
-        description = excluded.description
+        description = excluded.description,
+        formulaId = excluded.formulaId
     `);
 
     const findByNameBarcodeStmt = db.prepare(`
@@ -791,6 +850,19 @@ ipcMain.handle("medicine:import", async () => {
           const purchasePrice = String(row["Purchase Price"] || row["purchasePrice"] || "0");
           const salePrice = String(row["Sale Price"] || row["salePrice"] || "0");
           const description = row["Description"] || row["description"] || "";
+          const formulaName = row["Formula"] || row["formula"] || "";
+
+          // Resolve formula name to formulaId
+          let formulaId = null;
+          if (formulaName.trim()) {
+            let formula = db.prepare("SELECT id FROM formulas WHERE name = ?").get(formulaName.trim());
+            if (!formula) {
+              const result = db.prepare("INSERT INTO formulas (name) VALUES (?)").run(formulaName.trim());
+              formulaId = result.lastInsertRowid;
+            } else {
+              formulaId = formula.id;
+            }
+          }
 
           let targetId = id;
 
@@ -809,7 +881,7 @@ ipcMain.handle("medicine:import", async () => {
             if (exists) updated++; else created++;
           }
 
-          upsertStmt.run(targetId || null, name, barcode, category, quantity, purchasePrice, salePrice, description);
+          upsertStmt.run(targetId || null, name, barcode, category, quantity, purchasePrice, salePrice, description, formulaId);
         } catch (err) {
           console.error("Error importing row:", row, err);
           errors++;
