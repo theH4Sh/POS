@@ -6,8 +6,7 @@ const bcrypt = require("bcryptjs");
 const XLSX = require("xlsx");
 const crypto = require("crypto");
 const { machineIdSync } = require("node-machine-id");
-const dotenv = require("dotenv");
-dotenv.config();
+const { ALLOWED_MACHINE } = require("./config.cjs");
 
 let mainWindow;
 let currentUser = null; // Store current logged-in user
@@ -20,7 +19,7 @@ function getMachineHash() {
 }
 
 function enforceMachineLock() {
-  const allowedMachineHash = process.env.ALLOWED_MACHINE;
+  const allowedMachineHash = ALLOWED_MACHINE;
   const currentMachineHash = getMachineHash();
   if (currentMachineHash !== allowedMachineHash) {
     dialog.showErrorBox(
