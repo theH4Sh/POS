@@ -4,9 +4,32 @@ const fs = require("fs");
 const { db, orm, products, orders, formulas } = require("./db.cjs");
 const bcrypt = require("bcryptjs");
 const XLSX = require("xlsx");
+const crypto = require("crypto");
+const { machineIdSync } = require("node-machine-id");
+const dotenv = require("dotenv");
+dotenv.config();
 
 let mainWindow;
 let currentUser = null; // Store current logged-in user
+
+function getMachineHash() {
+  return crypto
+    .createHash("sha256")
+    .update(machineIdSync({ original: true }))
+    .digest("hex");
+}
+
+function enforceMachineLock() {
+  const allowedMachineHash = process.env.ALLOWED_MACHINE;
+  const currentMachineHash = getMachineHash();
+  if (currentMachineHash !== allowedMachineHash) {
+    dialog.showErrorBox(
+      "Unauthorized Machine",
+      `This machine is not authorized to run this application\nCurrent Machine Hash: ${currentMachineHash}\nAllowed Machine Hash: ${allowedMachineHash}`
+    );
+    app.quit();
+  }
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -907,7 +930,10 @@ ipcMain.handle("medicine:import", async () => {
 
 // ===== START APP AFTER HANDLERS ARE REGISTERED =====
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  enforceMachineLock();
+  createWindow();
+});
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {

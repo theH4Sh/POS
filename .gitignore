@@ -13,6 +13,7 @@ dist-ssr
 *.local
 release
 renderer-dist
+.env
 
 # Editor directories and files
 .vscode/*
