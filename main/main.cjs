@@ -9,7 +9,11 @@ const { machineIdSync } = require("node-machine-id");
 const dotenv = require("dotenv");
 dotenv.config();
 
+// Disable Hardware Acceleration for physical display rendering stability
+app.disableHardwareAcceleration();
+
 let mainWindow;
+
 let currentUser = null; // Store current logged-in user
 
 function getMachineHash() {
@@ -44,6 +48,13 @@ function createWindow() {
 
   mainWindow.removeMenu();
   mainWindow.maximize()
+
+  // F12 opens DevTools anywhere (even in production) for debugging
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'F12') {
+      mainWindow.webContents.toggleDevTools();
+    }
+  });
 
   if (app.isPackaged) {
     mainWindow.loadFile(path.join(__dirname, "../renderer-dist/index.html"));

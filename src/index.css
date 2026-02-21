@@ -8,6 +8,7 @@
   font-display: swap;
   src: url('./fonts/Outfit-Light.ttf') format('truetype');
 }
+
 @font-face {
   font-family: 'Outfit';
   font-style: normal;
@@ -15,6 +16,7 @@
   font-display: swap;
   src: url('./fonts/Outfit-Regular.ttf') format('truetype');
 }
+
 @font-face {
   font-family: 'Outfit';
   font-style: normal;
@@ -22,6 +24,7 @@
   font-display: swap;
   src: url('./fonts/Outfit-Medium.ttf') format('truetype');
 }
+
 @font-face {
   font-family: 'Outfit';
   font-style: normal;
@@ -29,6 +32,7 @@
   font-display: swap;
   src: url('./fonts/Outfit-SemiBold.ttf') format('truetype');
 }
+
 @font-face {
   font-family: 'Outfit';
   font-style: normal;
@@ -36,6 +40,7 @@
   font-display: swap;
   src: url('./fonts/Outfit-Bold.ttf') format('truetype');
 }
+
 @font-face {
   font-family: 'Outfit';
   font-style: normal;
@@ -57,8 +62,11 @@
 body {
   min-width: 320px;
   min-height: 100vh;
-  @apply bg-gradient-to-br from-blue-50 to-indigo-100
+  background-color: #eff6ff;
+  /* Fallback for older engines */
+  @apply bg-gradient-to-br from-blue-50 to-indigo-100;
 }
+
 
 /* Custom Scrollbar Styles */
 ::-webkit-scrollbar {

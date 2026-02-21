@@ -4,9 +4,7 @@
   min-height: 100vh;
 }
 
-body {
-  background-color: #F9FAFB;
-}
+
 
 @media print {
   @page {
