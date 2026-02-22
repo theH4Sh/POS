@@ -138,6 +138,19 @@ const Dashboard = () => {
     loadDashboard();
   }, [period, selectedYear, selectedMonth]);
 
+  // Handle Esc key for order details modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setSelectedOrder(null);
+      }
+    };
+    if (selectedOrder) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedOrder]);
+
   const getPeriodLabel = () => {
     if (period === "custom-year") return `Year ${selectedYear}`;
     if (period === "custom-month") return `${new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}`;
@@ -529,7 +542,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-black text-white tracking-tight">Order Details</h2>
-                  <p className="text-blue-100 text-sm font-bold mt-0.5">Audit ID: #{selectedOrder.id}</p>
+                  <p className="text-blue-100 text-sm font-bold mt-0.5">Order ID: #{selectedOrder.id}</p>
                 </div>
               </div>
               <button
