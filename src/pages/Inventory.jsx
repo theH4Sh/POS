@@ -19,6 +19,7 @@ const Inventory = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [showFormulaManager, setShowFormulaManager] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState(null);
+  const [lowStockThreshold, setLowStockThreshold] = useState(20);
 
   const isAdmin = user?.role === "admin";
 
@@ -34,10 +35,14 @@ const Inventory = () => {
 
   const load = useCallback(async () => {
     const medicines = await window.api.listMedicines();
+    const settings = await window.api.getSettings();
+    const threshold = parseInt(settings.lowStockThreshold) || 20;
+    setLowStockThreshold(threshold);
+
     const formatted = medicines.map((m) => {
       const stock = m.quantity || 0;
       const status =
-        stock === 0 ? "Out of Stock" : stock < 20 ? "Low Stock" : "In Stock";
+        stock === 0 ? "Out of Stock" : stock < threshold ? "Low Stock" : "In Stock";
       return { ...m, stock, status };
     });
     setProducts(formatted);
@@ -69,8 +74,8 @@ const Inventory = () => {
 
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "in-stock" && p.stock >= 20) ||
-      (statusFilter === "low-stock" && p.stock > 0 && p.stock < 20) ||
+      (statusFilter === "in-stock" && p.stock >= lowStockThreshold) ||
+      (statusFilter === "low-stock" && p.stock > 0 && p.stock < lowStockThreshold) ||
       (statusFilter === "out-of-stock" && p.stock === 0);
 
     const matchesCategory =
@@ -81,8 +86,8 @@ const Inventory = () => {
 
   const stats = {
     total: products.length,
-    inStock: products.filter((p) => p.stock >= 20).length,
-    lowStock: products.filter((p) => p.stock > 0 && p.stock < 20).length,
+    inStock: products.filter((p) => p.stock >= lowStockThreshold).length,
+    lowStock: products.filter((p) => p.stock > 0 && p.stock < lowStockThreshold).length,
     outOfStock: products.filter((p) => p.stock === 0).length,
     categories: {
       medicine: products.filter((p) => p.category === "medicine").length,
@@ -260,6 +265,7 @@ const Inventory = () => {
                 onEditProduct={setEditingProduct}
                 onDeleteProduct={handleDelete}
                 canEdit={isAdmin}
+                lowStockThreshold={lowStockThreshold}
               />
             </div>
           </div>

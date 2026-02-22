@@ -13,6 +13,7 @@ const Checkout = () => {
   const [lastOrder, setLastOrder] = useState(null);
   const [showCustomDiscount, setShowCustomDiscount] = useState(false);
   const [autoPrint, setAutoPrint] = useState(false);
+  const [lowStockThreshold, setLowStockThreshold] = useState(20);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -20,6 +21,9 @@ const Checkout = () => {
         const settings = await window.api.getSettings();
         if (settings.autoPrintCheckout !== undefined) {
           setAutoPrint(settings.autoPrintCheckout);
+        }
+        if (settings.lowStockThreshold !== undefined) {
+          setLowStockThreshold(parseInt(settings.lowStockThreshold) || 20);
         }
       } catch (err) {
         console.error("Error loading settings:", err);
@@ -329,6 +333,7 @@ const Checkout = () => {
             onProductScanned={handleProductScanned}
             barcodeRef={barcodeRef}
             searchRef={searchRef}
+            lowStockThreshold={lowStockThreshold}
           />
         </div>
       </div>

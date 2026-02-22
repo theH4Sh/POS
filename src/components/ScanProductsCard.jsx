@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "react-hot-toast";
 
-const ScanProductsCard = ({ onProductScanned, barcodeRef, searchRef }) => {
+const ScanProductsCard = ({ onProductScanned, barcodeRef, searchRef, lowStockThreshold = 20 }) => {
   const [barcode, setBarcode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -248,7 +248,7 @@ const ScanProductsCard = ({ onProductScanned, barcodeRef, searchRef }) => {
                           <span className="font-mono text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 group-hover:border-indigo-100 group-hover:text-indigo-600 transition-colors">
                             {product.barcode || "No Barcode"}
                           </span>
-                          <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${(product.stock || 0) < 10 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
+                          <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${(product.stock || 0) < lowStockThreshold ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
                             }`}>
                             {product.stock || 0} left
                           </span>

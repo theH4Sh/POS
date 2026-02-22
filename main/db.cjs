@@ -132,6 +132,12 @@ try {
     db.prepare("INSERT INTO settings (key,value) VALUES (?,?)").run("autoPrintCheckout", "false");
     console.log("✓ Migration: Initialized autoPrintCheckout setting");
   }
+
+  const lowStockThresholdExists = db.prepare("SELECT 1 FROM settings WHERE key=?").get("lowStockThreshold");
+  if (!lowStockThresholdExists) {
+    db.prepare("INSERT INTO settings (key,value) VALUES (?,?)").run("lowStockThreshold", "20");
+    console.log("✓ Migration: Initialized lowStockThreshold setting");
+  }
 } catch (err) {
   console.error("Migration error:", err);
 }

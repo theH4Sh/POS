@@ -476,11 +476,15 @@ ipcMain.handle("medicine:delete", (_, id) => {
 // Get low stock alerts
 ipcMain.handle("medicine:lowStock", () => {
   try {
+    // Get threshold from settings
+    const thresholdSetting = db.prepare("SELECT value FROM settings WHERE key = ?").get("lowStockThreshold");
+    const threshold = thresholdSetting ? parseInt(thresholdSetting.value) : 20;
+
     const result = db.prepare(`
       SELECT * FROM products 
-      WHERE quantity < 20 
+      WHERE quantity < ? 
       ORDER BY quantity ASC
-    `).all();
+    `).all(threshold);
 
     return result || [];
   } catch (err) {
@@ -649,8 +653,12 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
 
+    // Get low stock threshold from settings
+    const thresholdSetting = db.prepare("SELECT value FROM settings WHERE key = ?").get("lowStockThreshold");
+    const threshold = thresholdSetting ? parseInt(thresholdSetting.value) : 20;
+
     // Get low stock products (always overall, not period-specific)
-    const lowStockCount = products.filter((p) => p.quantity < 20).length;
+    const lowStockCount = products.filter((p) => p.quantity < threshold).length;
 
     return {
       stats: {
