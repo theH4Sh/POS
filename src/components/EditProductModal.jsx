@@ -207,7 +207,16 @@ export default function EditProductModal({ isOpen, product, onClose, onSuccess }
               </div>
 
               {/* Formula / Generic Name Combobox */}
-              <div className="md:col-span-2" ref={dropdownRef}>
+              <div
+                className="md:col-span-2"
+                ref={dropdownRef}
+                onBlur={(e) => {
+                  // Only close if focus moves outside the dropdown container
+                  if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setShowFormulaDropdown(false);
+                  }
+                }}
+              >
                 <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">
                   Formula / Generic Name
                 </label>
