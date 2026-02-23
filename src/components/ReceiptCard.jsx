@@ -63,6 +63,11 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
               )}
 
               <div className="text-gray-500 text-[10px]">{displayOrder.date}</div>
+              <div className="text-[9px] text-gray-500 mt-2 uppercase text-center leading-relaxed">
+                Main Street, Madina Town<br />
+                Bhara Kahu, Islamabad<br />
+                PH: 0313-5259204
+              </div>
             </div>
 
             <div className="border-b-2 border-dashed border-gray-300 my-4"></div>
@@ -122,6 +127,15 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
             <div className="text-center mt-8 space-y-1">
               <p className="font-bold text-xs uppercase text-gray-800">Thank you!</p>
               <p className="text-[10px] text-gray-400">Please come again</p>
+            </div>
+
+            {/* Return Policy */}
+            <div className="mt-8 pt-4 border-t border-dashed border-gray-300 text-center">
+              <div className="text-[8px] text-gray-400 uppercase tracking-widest mb-1 font-bold">Return Policy</div>
+              <div className="text-[9px] text-gray-600 leading-tight">
+                Exchange/Return within 3 days<br />
+                with original receipt.
+              </div>
             </div>
           </div>
 
