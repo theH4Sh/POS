@@ -24,7 +24,8 @@ function enforceMachineLock() {
   if (currentMachineHash !== allowedMachineHash) {
     dialog.showErrorBox(
       "Unauthorized Machine",
-      `This machine is not authorized to run this application\nCurrent Machine Hash: ${currentMachineHash}\nAllowed Machine Hash: ${allowedMachineHash}`
+      "This machine is not authorized to run this application"
+      // \nCurrent Machine Hash: ${currentMachineHash}\nAllowed Machine Hash: ${allowedMachineHash}
     );
     app.quit();
   }

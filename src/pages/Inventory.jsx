@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { CheckCircle2, AlertTriangle, XCircle, Boxes, Trash2 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, Boxes, Trash2, TrendingUp } from "lucide-react";
 import AddProductModal from "../components/AddProductModal";
 import EditProductModal from "../components/EditProductModal";
 import FormulaManagerModal from "../components/FormulaManagerModal";
@@ -84,11 +84,22 @@ const Inventory = () => {
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
+  const categories = ["medicine", "cosmetics", "supplements", "medical-devices", "others"];
+
   const stats = {
     total: products.length,
     inStock: products.filter((p) => p.stock >= lowStockThreshold).length,
     lowStock: products.filter((p) => p.stock > 0 && p.stock < lowStockThreshold).length,
     outOfStock: products.filter((p) => p.stock === 0).length,
+    totalPurchaseCost: products.reduce((acc, p) => acc + (Number(p.purchasePrice || 0) * (p.stock || 0)), 0),
+    totalSaleValue: products.reduce((acc, p) => acc + (Number(p.salePrice || 0) * (p.stock || 0)), 0),
+    categoryStats: categories.reduce((acc, cat) => {
+      const catProducts = products.filter(p => p.category === cat);
+      const buy = catProducts.reduce((sum, p) => sum + (Number(p.purchasePrice || 0) * (p.stock || 0)), 0);
+      const sell = catProducts.reduce((sum, p) => sum + (Number(p.salePrice || 0) * (p.stock || 0)), 0);
+      acc[cat] = { buy, sell, count: catProducts.length };
+      return acc;
+    }, {}),
     categories: {
       medicine: products.filter((p) => p.category === "medicine").length,
       cosmetics: products.filter((p) => p.category === "cosmetics").length,
@@ -97,6 +108,8 @@ const Inventory = () => {
       others: products.filter((p) => p.category === "others").length,
     }
   };
+
+  const potentialProfit = stats.totalSaleValue - stats.totalPurchaseCost;
 
   const handleDelete = (product) => {
     setDeletingProduct(product);
@@ -205,6 +218,102 @@ const Inventory = () => {
                 <p className={`text-3xl font-black mt-1 ${statusFilter === "out-of-stock" ? "text-white" : "text-gray-900"
                   }`}>{stats.outOfStock}</p>
               </button>
+            </div>
+
+            {/* Financial Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-gradient-to-br from-indigo-500 to-blue-700 p-6 rounded-2xl shadow-xl shadow-indigo-200/50 border border-white/20 transform hover:scale-[1.02] transition-transform duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <Boxes className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Investment</span>
+                </div>
+                <h4 className="text-white/80 text-xs font-bold uppercase tracking-wider">Total Purchase Cost</h4>
+                <p className="text-3xl font-black text-white mt-1 font-mono">
+                  PKR {stats.totalPurchaseCost.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="bg-gradient-to-br from-emerald-500 to-teal-700 p-6 rounded-2xl shadow-xl shadow-emerald-200/50 border border-white/20 transform hover:scale-[1.02] transition-transform duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <CheckCircle2 className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Valuation</span>
+                </div>
+                <h4 className="text-white/80 text-xs font-bold uppercase tracking-wider">Estimated Sale Value</h4>
+                <p className="text-3xl font-black text-white mt-1 font-mono">
+                  PKR {stats.totalSaleValue.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="bg-gradient-to-br from-violet-500 to-purple-700 p-6 rounded-2xl shadow-xl shadow-violet-200/50 border border-white/20 transform hover:scale-[1.02] transition-transform duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <TrendingUp className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Performance</span>
+                </div>
+                <h4 className="text-white/80 text-xs font-bold uppercase tracking-wider">Potential Profit</h4>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-black text-white mt-1 font-mono">
+                    PKR {potentialProfit.toLocaleString()}
+                  </p>
+                  <span className="text-xs font-bold text-white/80 bg-white/20 px-2 py-0.5 rounded-full">
+                    {stats.totalPurchaseCost > 0 ? ((potentialProfit / stats.totalPurchaseCost) * 100).toFixed(1) : 0}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Category Financial Breakdown */}
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+              <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Category Financial Breakdown</h3>
+                <span className="text-[10px] font-bold text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full uppercase tracking-tighter">Inventory Valuation</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-50">
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Category</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Stock Count</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Purchase Cost</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Sale Value</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Potential Profit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {categories.map((cat) => {
+                      const s = stats.categoryStats[cat];
+                      const profit = s.sell - s.buy;
+                      return (
+                        <tr key={cat} className="hover:bg-blue-50/30 transition-colors">
+                          <td className="px-6 py-4">
+                            <span className="font-black text-gray-800 uppercase tracking-tight capitalize">{cat.replace("-", " ")}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded text-xs font-bold">{s.count} items</span>
+                          </td>
+                          <td className="px-6 py-4 text-right font-mono text-gray-600 font-bold">
+                            PKR {s.buy.toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 text-right font-mono text-blue-600 font-bold">
+                            PKR {s.sell.toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex flex-col items-end">
+                              <span className="font-mono text-emerald-600 font-black">PKR {profit.toLocaleString()}</span>
+                              <span className="text-[9px] font-bold text-gray-400">Margin: {s.buy > 0 ? ((profit / s.buy) * 100).toFixed(1) : 0}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <div className="flex flex-col md:flex-row gap-6 items-end bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
