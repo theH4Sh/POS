@@ -2,7 +2,7 @@ import { SquarePen, TriangleAlert, Trash2, ListFilter, ArrowUpDown, ArrowUp, Arr
 import { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 
-export default function InventoryTable({ products, onEditProduct, onDeleteProduct, isAdmin = false, lowStockThreshold = 20 }) {
+export default function InventoryTable({ products, onEditProduct, onDeleteProduct, isAdmin = false, lowStockThresholds = { default: 20 } }) {
   // Tooltip state
   const [hoveredProduct, setHoveredProduct] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -164,7 +164,7 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
                   <td className="px-6 py-5" onMouseEnter={() => setHoveredProduct(p)}>
                     <div className="flex flex-col items-center gap-2">
                       <div className="flex items-center gap-2">
-                        <span className={`text-xl font-black font-mono tracking-tighter ${p.stock < (lowStockThreshold / 2) ? 'text-red-600 animate-pulse' : 'text-gray-900'}`}>
+                        <span className={`text-xl font-black font-mono tracking-tighter ${p.stock < ((lowStockThresholds[p.category] || lowStockThresholds.default) / 2) ? 'text-red-600 animate-pulse' : 'text-gray-900'}`}>
                           {p.stock}
                         </span>
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">units</span>

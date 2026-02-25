@@ -19,7 +19,7 @@ const Inventory = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [showFormulaManager, setShowFormulaManager] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState(null);
-  const [lowStockThreshold, setLowStockThreshold] = useState(20);
+  const [lowStockThresholds, setLowStockThresholds] = useState({ default: 20 });
 
   const isAdmin = user?.role === "admin";
 
@@ -36,11 +36,21 @@ const Inventory = () => {
   const load = useCallback(async () => {
     const medicines = await window.api.listMedicines();
     const settings = await window.api.getSettings();
-    const threshold = parseInt(settings.lowStockThreshold) || 20;
-    setLowStockThreshold(threshold);
+
+    const thresholds = { default: parseInt(settings.lowStockThreshold) || 20 };
+    const categories = ["medicine", "cosmetics", "supplements", "medical-devices", "others"];
+    categories.forEach(cat => {
+      const key = `lowStockThreshold_${cat}`;
+      if (settings[key]) {
+        thresholds[cat] = parseInt(settings[key]);
+      }
+    });
+
+    setLowStockThresholds(thresholds);
 
     const formatted = medicines.map((m) => {
       const stock = m.quantity || 0;
+      const threshold = thresholds[m.category] || thresholds.default;
       const status =
         stock === 0 ? "Out of Stock" : stock < threshold ? "Low Stock" : "In Stock";
       return { ...m, stock, status };
@@ -74,9 +84,13 @@ const Inventory = () => {
 
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "in-stock" && p.stock >= lowStockThreshold) ||
-      (statusFilter === "low-stock" && p.stock > 0 && p.stock < lowStockThreshold) ||
-      (statusFilter === "out-of-stock" && p.stock === 0);
+      (() => {
+        const threshold = lowStockThresholds[p.category] || lowStockThresholds.default;
+        if (statusFilter === "in-stock") return p.stock >= threshold;
+        if (statusFilter === "low-stock") return p.stock > 0 && p.stock < threshold;
+        if (statusFilter === "out-of-stock") return p.stock === 0;
+        return true;
+      })();
 
     const matchesCategory =
       categoryFilter === "all" || p.category === categoryFilter;
@@ -88,8 +102,8 @@ const Inventory = () => {
 
   const stats = {
     total: products.length,
-    inStock: products.filter((p) => p.stock >= lowStockThreshold).length,
-    lowStock: products.filter((p) => p.stock > 0 && p.stock < lowStockThreshold).length,
+    inStock: products.filter((p) => p.stock >= (lowStockThresholds[p.category] || lowStockThresholds.default)).length,
+    lowStock: products.filter((p) => p.stock > 0 && p.stock < (lowStockThresholds[p.category] || lowStockThresholds.default)).length,
     outOfStock: products.filter((p) => p.stock === 0).length,
     totalPurchaseCost: products.reduce((acc, p) => acc + (Number(p.purchasePrice || 0) * (p.stock || 0)), 0),
     totalSaleValue: products.reduce((acc, p) => acc + (Number(p.salePrice || 0) * (p.stock || 0)), 0),
@@ -378,7 +392,7 @@ const Inventory = () => {
                 onEditProduct={setEditingProduct}
                 onDeleteProduct={handleDelete}
                 isAdmin={isAdmin}
-                lowStockThreshold={lowStockThreshold}
+                lowStockThresholds={lowStockThresholds}
               />
             </div>
           </div>

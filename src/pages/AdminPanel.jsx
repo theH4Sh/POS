@@ -356,34 +356,77 @@ export default function AdminPanel() {
               </div>
 
               {/* Low Stock Threshold Setting */}
-              <div className="flex items-center justify-between p-6 bg-gray-50 rounded-2xl border border-gray-100 transition-all hover:border-blue-200">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white rounded-xl shadow-sm border border-gray-100">
-                    <AlertCircle className="h-6 w-6 text-gray-600" />
+              <div className="md:col-span-2 space-y-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 bg-blue-100 text-blue-600 rounded-2xl">
+                    <AlertCircle className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">Low Stock Threshold</h3>
-                    <p className="text-sm text-gray-400 font-medium">Alert when product quantity drops below this value</p>
+                    <h3 className="font-bold text-gray-900">Low Stock Thresholds</h3>
+                    <p className="text-sm text-gray-400 font-medium">Configure alert levels for each category</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <input
-                    type="number"
-                    min="0"
-                    value={settings.lowStockThreshold || 20}
-                    onChange={async (e) => {
-                      const val = parseInt(e.target.value) || 0;
-                      setSettings(prev => ({ ...prev, lowStockThreshold: val }));
-                      try {
-                        await window.api.updateSetting({ key: 'lowStockThreshold', value: val.toString() });
-                      } catch (err) {
-                        toast.error("Failed to save threshold");
-                      }
-                    }}
-                    className="w-20 px-3 py-2 bg-white border border-gray-200 rounded-xl focus:border-blue-500 outline-none font-bold text-center text-gray-700 shadow-sm"
-                  />
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Units</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Global Fallback */}
+                  <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-200 shadow-sm transition-all hover:border-blue-500">
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-sm">Global Default</h4>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Fallback Value</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        value={settings.lowStockThreshold || 20}
+                        onChange={async (e) => {
+                          const val = parseInt(e.target.value) || 0;
+                          setSettings(prev => ({ ...prev, lowStockThreshold: val }));
+                          try {
+                            await window.api.updateSetting({ key: 'lowStockThreshold', value: val.toString() });
+                          } catch (err) {
+                            toast.error("Failed to save threshold");
+                          }
+                        }}
+                        className="w-16 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg focus:border-blue-500 outline-none font-bold text-center text-gray-700 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Category Specifics */}
+                  {[
+                    { key: 'medicine', label: 'Medicine' },
+                    { key: 'cosmetics', label: 'Cosmetics' },
+                    { key: 'supplements', label: 'Supplements' },
+                    { key: 'medical-devices', label: 'Medical Devices' },
+                    { key: 'others', label: 'Others' }
+                  ].map((cat) => (
+                    <div key={cat.key} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all hover:border-blue-500">
+                      <div>
+                        <h4 className="font-bold text-gray-900 text-sm">{cat.label}</h4>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Threshold</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder={settings.lowStockThreshold || 20}
+                          value={settings[`lowStockThreshold_${cat.key}`] || ""}
+                          onChange={async (e) => {
+                            const val = e.target.value;
+                            const settingKey = `lowStockThreshold_${cat.key}`;
+                            setSettings(prev => ({ ...prev, [settingKey]: val }));
+                            try {
+                              await window.api.updateSetting({ key: settingKey, value: val.toString() });
+                            } catch (err) {
+                              toast.error(`Failed to save ${cat.label} threshold`);
+                            }
+                          }}
+                          className="w-16 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg focus:border-blue-500 outline-none font-bold text-center text-gray-700 text-sm"
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

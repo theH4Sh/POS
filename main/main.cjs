@@ -482,17 +482,23 @@ ipcMain.handle("medicine:delete", (_, id) => {
 // Get low stock alerts
 ipcMain.handle("medicine:lowStock", () => {
   try {
-    // Get threshold from settings
-    const thresholdSetting = db.prepare("SELECT value FROM settings WHERE key = ?").get("lowStockThreshold");
-    const threshold = thresholdSetting ? parseInt(thresholdSetting.value) : 20;
+    // Get all settings to find thresholds
+    const allSettings = db.prepare("SELECT key, value FROM settings").all();
+    const settingsMap = {};
+    allSettings.forEach(s => settingsMap[s.key] = s.value);
 
-    const result = db.prepare(`
-      SELECT * FROM products 
-      WHERE quantity < ? 
-      ORDER BY quantity ASC
-    `).all(threshold);
+    const globalThreshold = parseInt(settingsMap.lowStockThreshold) || 20;
 
-    return result || [];
+    const allProducts = db.prepare(`SELECT * FROM products`).all();
+
+    const lowStockProducts = allProducts.filter(p => {
+      const categoryThresholdKey = `lowStockThreshold_${p.category}`;
+      const threshold = parseInt(settingsMap[categoryThresholdKey]) || globalThreshold;
+      return p.quantity < threshold;
+    });
+
+    // Sort by quantity
+    return lowStockProducts.sort((a, b) => a.quantity - b.quantity);
   } catch (err) {
     console.error("Error getting low stock:", err);
     return [];
@@ -659,12 +665,18 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
 
-    // Get low stock threshold from settings
-    const thresholdSetting = db.prepare("SELECT value FROM settings WHERE key = ?").get("lowStockThreshold");
-    const threshold = thresholdSetting ? parseInt(thresholdSetting.value) : 20;
+    // Get low stock thresholds
+    const allSettings = db.prepare("SELECT key, value FROM settings").all();
+    const settingsMap = {};
+    allSettings.forEach(s => settingsMap[s.key] = s.value);
+    const globalThreshold = parseInt(settingsMap.lowStockThreshold) || 20;
 
     // Get low stock products (always overall, not period-specific)
-    const lowStockCount = products.filter((p) => p.quantity < threshold).length;
+    const lowStockCount = products.filter((p) => {
+      const categoryThresholdKey = `lowStockThreshold_${p.category}`;
+      const threshold = parseInt(settingsMap[categoryThresholdKey]) || globalThreshold;
+      return p.quantity < threshold;
+    }).length;
 
     return {
       stats: {

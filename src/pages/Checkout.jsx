@@ -13,7 +13,7 @@ const Checkout = () => {
   const [lastOrder, setLastOrder] = useState(null);
   const [showCustomDiscount, setShowCustomDiscount] = useState(false);
   const [autoPrint, setAutoPrint] = useState(false);
-  const [lowStockThreshold, setLowStockThreshold] = useState(20);
+  const [lowStockThresholds, setLowStockThresholds] = useState({ default: 20 });
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -23,7 +23,15 @@ const Checkout = () => {
           setAutoPrint(settings.autoPrintCheckout);
         }
         if (settings.lowStockThreshold !== undefined) {
-          setLowStockThreshold(parseInt(settings.lowStockThreshold) || 20);
+          const thresholds = { default: parseInt(settings.lowStockThreshold) || 20 };
+          const categories = ["medicine", "cosmetics", "supplements", "medical-devices", "others"];
+          categories.forEach(cat => {
+            const key = `lowStockThreshold_${cat}`;
+            if (settings[key]) {
+              thresholds[cat] = parseInt(settings[key]);
+            }
+          });
+          setLowStockThresholds(thresholds);
         }
       } catch (err) {
         console.error("Error loading settings:", err);
@@ -333,7 +341,7 @@ const Checkout = () => {
             onProductScanned={handleProductScanned}
             barcodeRef={barcodeRef}
             searchRef={searchRef}
-            lowStockThreshold={lowStockThreshold}
+            lowStockThresholds={lowStockThresholds}
           />
         </div>
       </div>
