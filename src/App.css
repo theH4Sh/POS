@@ -11,35 +11,67 @@ body {
 @media print {
   @page {
     size: 80mm auto;
-    margin: 0;
+    margin: 0mm;
+  }
+
+  /* 1. Global Reset to kill height and collapse invisible things */
+  * {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    box-shadow: none !important;
+  }
+
+  /* 2. Hide everything by default but don't use display: none on roots */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* 3. Physically delete components we KNOW shouldn't be there */
+  .print-hidden,
+  nav,
+  header,
+  footer,
+  aside,
+  .Navbar,
+  .sidebar,
+  [class*="Navbar"] {
+    display: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
   }
 
   html,
   body {
-    width: 80mm;
-    margin: 0;
-    padding: 0;
+    width: 80mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background: white !important;
+    overflow: visible !important;
   }
 
-  body * {
-    visibility: hidden;
-    margin: 2px;
+  /* 4. The Receipt - Use fixed positioning to bypass parent layout issues */
+  #print-area {
+    display: block !important;
+    visibility: visible !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 4mm !important;
+    width: 72mm !important;
+    z-index: 99999 !important;
+    background: white !important;
+    zoom: 0.9;
+    transform-origin: top left;
   }
 
-  #print-area,
   #print-area * {
-    visibility: visible;
-  }
-
-  #print-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 80mm;
-  }
-
-  #print-area {
-    page-break-inside: avoid;
+    visibility: visible !important;
+    color: black !important;
+    border-color: black !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    font-weight: 900 !important;
   }
 
   .receipt-item {

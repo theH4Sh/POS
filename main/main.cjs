@@ -56,7 +56,12 @@ function createWindow() {
 // ===== SYSTEM HANDLERS =====
 ipcMain.handle("system:print", () => {
   if (mainWindow) {
-    mainWindow.webContents.print({ silent: true, printBackground: true });
+    mainWindow.webContents.print({
+      silent: true,
+      printBackground: true,
+      pageSize: { width: 80000, height: 297000 },
+      margins: { marginType: 'none' }, // Some versions of Electron support this to zoom out
+    });
     return { success: true };
   }
   return { success: false, message: "No active window" };

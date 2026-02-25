@@ -258,8 +258,8 @@ const Checkout = () => {
 
   return (
     <div className="flex flex-col gap-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-      {/* Top Section: Cart and Lookup */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Top Section: Cart and Lookup - HIDDEN ON PRINT */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print-hidden">
         {/* Left Col: Cart (Larger) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Cart Tabs - Modern Segmented Control */}
@@ -339,9 +339,9 @@ const Checkout = () => {
       </div>
 
       {/* Bottom Section: Receipt and Alerts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-200 pt-8 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-200 pt-8 mt-4 print:border-none print:pt-0 print:mt-0">
         <ReceiptCard cart={cart} lastOrder={lastOrder} discount={discount} />
-        <div className="space-y-6">
+        <div className="space-y-6 print-hidden">
           <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
             Inventory Insights
