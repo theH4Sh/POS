@@ -2,7 +2,7 @@ import { SquarePen, TriangleAlert, Trash2, ListFilter, ArrowUpDown, ArrowUp, Arr
 import { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 
-export default function InventoryTable({ products, onEditProduct, onDeleteProduct, canEdit = false, lowStockThreshold = 20 }) {
+export default function InventoryTable({ products, onEditProduct, onDeleteProduct, isAdmin = false, lowStockThreshold = 20 }) {
   // Tooltip state
   const [hoveredProduct, setHoveredProduct] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -186,7 +186,7 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
 
                   {/* Actions */}
                   <td className="px-6 py-5 text-right whitespace-nowrap" onMouseEnter={() => setHoveredProduct(null)}>
-                    {canEdit && (
+                    {isAdmin && (
                       <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
                         <button
                           onClick={(e) => { e.stopPropagation(); onEditProduct(p); }}
