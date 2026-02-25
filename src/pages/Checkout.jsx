@@ -186,7 +186,7 @@ const Checkout = () => {
       setDiscount(0);
 
       // Trigger auto-print if enabled
-      if (autoPrint && !isRefund) {
+      if (autoPrint) {
         setTimeout(() => {
           window.api.print();
         }, 300); // Small delay to ensure receipt preview has updated
