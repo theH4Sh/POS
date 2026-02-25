@@ -71,7 +71,7 @@ const ScanProductsCard = ({ onProductScanned, barcodeRef, searchRef, lowStockThr
         setHoveredProduct(null);
       } else if (mappedProducts.length > 1) {
         setResults(mappedProducts);
-        setHighlightedIndex(0);
+        setHighlightedIndex(-1);
       } else {
         toast.error("Product not found");
       }
@@ -97,7 +97,7 @@ const ScanProductsCard = ({ onProductScanned, barcodeRef, searchRef, lowStockThr
           stock: Number.isFinite(p.quantity) ? p.quantity : 0
         }));
         setResults(mappedProducts);
-        setHighlightedIndex(0);
+        setHighlightedIndex(-1);
       } else {
         toast.error("No products found");
         setResults([]);
@@ -166,7 +166,10 @@ const ScanProductsCard = ({ onProductScanned, barcodeRef, searchRef, lowStockThr
                 type="text"
                 placeholder="Scan product barcode..."
                 value={barcode}
-                onChange={(e) => setBarcode(e.target.value)}
+                onChange={(e) => {
+                  setBarcode(e.target.value);
+                  setHighlightedIndex(-1);
+                }}
                 className="w-full h-12 pl-4 pr-24 bg-gray-50 border-2 border-transparent transition-all duration-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none font-mono"
                 autoFocus
                 onKeyDown={handleResultsKeyDown}
@@ -202,7 +205,10 @@ const ScanProductsCard = ({ onProductScanned, barcodeRef, searchRef, lowStockThr
                 type="text"
                 placeholder="Type product name or formula..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setHighlightedIndex(-1);
+                }}
                 className="w-full h-12 pl-4 pr-24 bg-gray-50 border-2 border-transparent transition-all duration-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-gray-900 focus:ring-4 focus:ring-gray-900/10 outline-none"
                 ref={searchRef}
                 onKeyDown={handleResultsKeyDown}
