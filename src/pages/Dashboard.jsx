@@ -56,9 +56,10 @@ const Dashboard = () => {
     }
   }, [user, navigate]);
 
-  const [period, setPeriod] = useState("monthly");
+  const [period, setPeriod] = useState("daily");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalCost: 0,
@@ -139,6 +140,8 @@ const Dashboard = () => {
           params = { period: "custom-year", year: selectedYear };
         } else if (period === "custom-month") {
           params = { period: "custom-month", year: selectedYear, month: selectedMonth };
+        } else if (period === "custom-date") {
+          params = { period: "custom-date", date: selectedDate };
         }
 
         const dashboardData = await window.api.getDashboardStats(params);
@@ -153,7 +156,7 @@ const Dashboard = () => {
     };
 
     loadDashboard();
-  }, [period, selectedYear, selectedMonth]);
+  }, [period, selectedYear, selectedMonth, selectedDate]);
 
   // Handle Esc key for order details modal
   useEffect(() => {
@@ -171,6 +174,7 @@ const Dashboard = () => {
   const getPeriodLabel = () => {
     if (period === "custom-year") return `Year ${selectedYear}`;
     if (period === "custom-month") return `${new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}`;
+    if (period === "custom-date") return new Date(selectedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     return periodLabels[period];
   };
 
@@ -258,6 +262,22 @@ const Dashboard = () => {
                   ))}
                 </select>
                 <button onClick={() => setPeriod("custom-month")} className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${period === "custom-month" ? "bg-rose-600 text-white" : "text-gray-400 hover:text-gray-600"}`}>Month</button>
+              </div>
+
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-3xl transition-all duration-300 border-2 ${period === "custom-date" ? "bg-teal-50 border-teal-200" : "bg-gray-50/50 border-transparent"}`}>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  max={new Date().toISOString().split("T")[0]}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setSelectedDate(e.target.value);
+                      setPeriod("custom-date");
+                    }
+                  }}
+                  className="bg-transparent text-sm font-black text-gray-700 outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-50 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+                />
+                <button onClick={() => setPeriod("custom-date")} className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${period === "custom-date" ? "bg-teal-600 text-white" : "text-gray-400 hover:text-gray-600"}`}>Date</button>
               </div>
             </div>
           </div>

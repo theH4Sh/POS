@@ -571,10 +571,11 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
     const now = new Date();
     let startDate, endDate;
 
-    // Handle both string period and object with {period, year, month}
+    // Handle both string period and object with {period, year, month, date}
     let period = typeof params === "string" ? params : params.period;
     const customYear = typeof params === "object" ? params.year : null;
     const customMonth = typeof params === "object" ? params.month : null; // 0-indexed or 1-indexed? Let's assume passed as 0-11 for consistency with Date
+    const customDate = typeof params === "object" ? params.date : null;
 
     // Calculate date range based on period
     if (period === "daily") {
@@ -592,6 +593,11 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
     } else if (period === "custom-month" && customYear && customMonth !== undefined) {
       startDate = new Date(customYear, customMonth, 1);
       endDate = new Date(customYear, customMonth + 1, 0, 23, 59, 59, 999);
+    } else if (period === "custom-date" && customDate) {
+      startDate = new Date(customDate);
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(customDate);
+      endDate.setHours(23, 59, 59, 999);
     } else {
       // overall - no date filter
       startDate = new Date(0);
