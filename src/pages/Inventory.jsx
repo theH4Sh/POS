@@ -20,6 +20,7 @@ const Inventory = () => {
   const [showFormulaManager, setShowFormulaManager] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState(null);
   const [lowStockThresholds, setLowStockThresholds] = useState({ default: 20 });
+  const [loading, setLoading] = useState(true);
 
   const isAdmin = user?.role === "admin";
 
@@ -34,6 +35,7 @@ const Inventory = () => {
   }, [deletingProduct]);
 
   const load = useCallback(async () => {
+    setLoading(true);
     const medicines = await window.api.listMedicines();
     const settings = await window.api.getSettings();
 
@@ -56,6 +58,7 @@ const Inventory = () => {
       return { ...m, stock, status };
     });
     setProducts(formatted);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -187,8 +190,12 @@ const Inventory = () => {
                     }`}>Total Products</p>
                   <Boxes className={`h-5 w-5 ${statusFilter === "all" ? "text-blue-200" : "text-blue-500"}`} />
                 </div>
-                <p className={`text-3xl font-black mt-1 ${statusFilter === "all" ? "text-white" : "text-gray-900"
-                  }`}>{stats.total}</p>
+                {loading ? (
+                  <div className="h-9 w-16 bg-current opacity-20 rounded-lg animate-pulse mt-1"></div>
+                ) : (
+                  <p className={`text-3xl font-black mt-1 ${statusFilter === "all" ? "text-white" : "text-gray-900"
+                    }`}>{stats.total}</p>
+                )}
               </button>
 
               <button
@@ -201,8 +208,12 @@ const Inventory = () => {
                     }`}>In Stock</p>
                   <CheckCircle2 className={`h-5 w-5 ${statusFilter === "in-stock" ? "text-emerald-200" : "text-emerald-500"}`} />
                 </div>
-                <p className={`text-3xl font-black mt-1 ${statusFilter === "in-stock" ? "text-white" : "text-gray-900"
-                  }`}>{stats.inStock}</p>
+                {loading ? (
+                  <div className="h-9 w-16 bg-current opacity-20 rounded-lg animate-pulse mt-1"></div>
+                ) : (
+                  <p className={`text-3xl font-black mt-1 ${statusFilter === "in-stock" ? "text-white" : "text-gray-900"
+                    }`}>{stats.inStock}</p>
+                )}
               </button>
 
               <button
@@ -215,8 +226,12 @@ const Inventory = () => {
                     }`}>Low Stock</p>
                   <AlertTriangle className={`h-5 w-5 ${statusFilter === "low-stock" ? "text-amber-100" : "text-amber-500"}`} />
                 </div>
-                <p className={`text-3xl font-black mt-1 ${statusFilter === "low-stock" ? "text-white" : "text-gray-900"
-                  }`}>{stats.lowStock}</p>
+                {loading ? (
+                  <div className="h-9 w-16 bg-current opacity-20 rounded-lg animate-pulse mt-1"></div>
+                ) : (
+                  <p className={`text-3xl font-black mt-1 ${statusFilter === "low-stock" ? "text-white" : "text-gray-900"
+                    }`}>{stats.lowStock}</p>
+                )}
               </button>
 
               <button
@@ -229,8 +244,12 @@ const Inventory = () => {
                     }`}>Out of Stock</p>
                   <XCircle className={`h-5 w-5 ${statusFilter === "out-of-stock" ? "text-rose-200" : "text-rose-500"}`} />
                 </div>
-                <p className={`text-3xl font-black mt-1 ${statusFilter === "out-of-stock" ? "text-white" : "text-gray-900"
-                  }`}>{stats.outOfStock}</p>
+                {loading ? (
+                  <div className="h-9 w-16 bg-current opacity-20 rounded-lg animate-pulse mt-1"></div>
+                ) : (
+                  <p className={`text-3xl font-black mt-1 ${statusFilter === "out-of-stock" ? "text-white" : "text-gray-900"
+                    }`}>{stats.outOfStock}</p>
+                )}
               </button>
             </div>
 
@@ -245,9 +264,13 @@ const Inventory = () => {
                     <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Investment</span>
                   </div>
                   <h4 className="text-white/80 text-xs font-bold uppercase tracking-wider">Total Purchase Cost</h4>
-                  <p className="text-3xl font-black text-white mt-1 font-mono">
-                    PKR {stats.totalPurchaseCost.toLocaleString()}
-                  </p>
+                  {loading ? (
+                    <div className="h-9 w-40 bg-white/20 rounded-lg animate-pulse mt-1"></div>
+                  ) : (
+                    <p className="text-3xl font-black text-white mt-1 font-mono">
+                      PKR {stats.totalPurchaseCost.toLocaleString()}
+                    </p>
+                  )}
                 </div>
 
                 <div className="bg-gradient-to-br from-emerald-500 to-teal-700 p-6 rounded-2xl shadow-xl shadow-emerald-200/50 border border-white/20 transform hover:scale-[1.02] transition-transform duration-300">
@@ -258,9 +281,13 @@ const Inventory = () => {
                     <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Valuation</span>
                   </div>
                   <h4 className="text-white/80 text-xs font-bold uppercase tracking-wider">Estimated Sale Value</h4>
-                  <p className="text-3xl font-black text-white mt-1 font-mono">
-                    PKR {stats.totalSaleValue.toLocaleString()}
-                  </p>
+                  {loading ? (
+                    <div className="h-9 w-40 bg-white/20 rounded-lg animate-pulse mt-1"></div>
+                  ) : (
+                    <p className="text-3xl font-black text-white mt-1 font-mono">
+                      PKR {stats.totalSaleValue.toLocaleString()}
+                    </p>
+                  )}
                 </div>
 
                 <div className="bg-gradient-to-br from-violet-500 to-purple-700 p-6 rounded-2xl shadow-xl shadow-violet-200/50 border border-white/20 transform hover:scale-[1.02] transition-transform duration-300">
@@ -271,14 +298,18 @@ const Inventory = () => {
                     <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Performance</span>
                   </div>
                   <h4 className="text-white/80 text-xs font-bold uppercase tracking-wider">Potential Profit</h4>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-black text-white mt-1 font-mono">
-                      PKR {potentialProfit.toLocaleString()}
-                    </p>
-                    <span className="text-xs font-bold text-white/80 bg-white/20 px-2 py-0.5 rounded-full">
-                      {stats.totalPurchaseCost > 0 ? ((potentialProfit / stats.totalPurchaseCost) * 100).toFixed(1) : 0}%
-                    </span>
-                  </div>
+                  {loading ? (
+                    <div className="h-9 w-40 bg-white/20 rounded-lg animate-pulse mt-1"></div>
+                  ) : (
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-black text-white mt-1 font-mono">
+                        PKR {potentialProfit.toLocaleString()}
+                      </p>
+                      <span className="text-xs font-bold text-white/80 bg-white/20 px-2 py-0.5 rounded-full">
+                        {stats.totalPurchaseCost > 0 ? ((potentialProfit / stats.totalPurchaseCost) * 100).toFixed(1) : 0}%
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -393,6 +424,7 @@ const Inventory = () => {
                 onDeleteProduct={handleDelete}
                 isAdmin={isAdmin}
                 lowStockThresholds={lowStockThresholds}
+                loading={loading}
               />
             </div>
           </div>

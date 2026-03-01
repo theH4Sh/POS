@@ -2,7 +2,7 @@ import { SquarePen, TriangleAlert, Trash2, ListFilter, ArrowUpDown, ArrowUp, Arr
 import { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 
-export default function InventoryTable({ products, onEditProduct, onDeleteProduct, isAdmin = false, lowStockThresholds = { default: 20 } }) {
+export default function InventoryTable({ products, onEditProduct, onDeleteProduct, isAdmin = false, lowStockThresholds = { default: 20 }, loading = false }) {
   // Tooltip state
   const [hoveredProduct, setHoveredProduct] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -112,7 +112,39 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {sortedProducts.length > 0 ? (
+            {loading ? (
+              Array.from({ length: 5 }).map((_, idx) => (
+                <tr key={`skeleton-${idx}`} className="animate-pulse">
+                  <td className="px-6 py-5">
+                    <div className="h-6 w-24 bg-gray-100 rounded-md"></div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="space-y-2">
+                      <div className="h-5 w-40 bg-gray-100 rounded-md"></div>
+                      <div className="h-3 w-20 bg-gray-50 rounded-md"></div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="h-4 w-20 bg-gray-100 rounded-md"></div>
+                      <div className="h-4 w-20 bg-gray-100 rounded-md"></div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="h-6 w-12 bg-gray-100 rounded-md"></div>
+                      <div className="h-4 w-16 bg-gray-50 rounded-full"></div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <div className="flex justify-end gap-2">
+                      <div className="h-9 w-9 bg-gray-50 rounded-xl"></div>
+                      <div className="h-9 w-9 bg-gray-50 rounded-xl"></div>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : sortedProducts.length > 0 ? (
               sortedProducts.map((p) => (
                 <tr
                   key={p.id}
