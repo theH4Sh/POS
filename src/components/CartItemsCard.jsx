@@ -1,4 +1,4 @@
-import { ShoppingCart, Trash2 } from "lucide-react";
+import { ShoppingCart, Trash2, Banknote, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 const CartItemsCard = ({
@@ -10,6 +10,8 @@ const CartItemsCard = ({
   discount = 0,
   onDiscountChange = () => { },
   showCustomDiscount = false,
+  amountReceived = "",
+  onAmountReceivedChange = () => { },
 }) => {
   const scrollRef = useRef(null);
 
@@ -25,10 +27,16 @@ const CartItemsCard = ({
   );
 
   const discountAmount = Math.round(subtotal * discount / 100);
-  const total = subtotal - discountAmount;
+  const total = Math.round(subtotal - discountAmount);
+  const isRefund = total < 0;
+  const cashIn = amountReceived === "" ? null : Number(amountReceived);
+  const changeDue =
+    cashIn !== null && !Number.isNaN(cashIn) && !isRefund
+      ? Math.round(cashIn - total)
+      : null;
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white shadow-xl flex flex-col h-[600px] overflow-hidden">
+    <div className="rounded-2xl border border-gray-200 bg-white shadow-xl flex flex-col h-[680px] overflow-hidden">
 
       {/* Header */}
       <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
@@ -238,6 +246,76 @@ const CartItemsCard = ({
           </div>
         </div>
 
+        {/* Cash In / Cash Out */}
+        {!isRefund && cart.length > 0 && (
+          <div className="bg-emerald-50/60 border border-emerald-100/80 rounded-xl p-3 space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg shrink-0">
+                  <ArrowDownLeft className="h-3.5 w-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-xs font-bold text-gray-700">Cash Received</span>
+                  <span className="block text-[9px] text-gray-400 font-medium uppercase tracking-wider">Amount tendered</span>
+                </div>
+              </div>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">₨</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  data-cash-input="true"
+                  value={amountReceived}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^\d]/g, "");
+                    onAmountReceivedChange(val);
+                  }}
+                  className="w-28 h-8 pl-6 pr-2 bg-white border border-emerald-200 rounded-lg text-right text-sm font-black text-gray-800 font-mono focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all shadow-sm"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 pt-1 border-t border-emerald-100/80">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className={`p-1.5 rounded-lg shrink-0 ${
+                  changeDue !== null && changeDue < 0
+                    ? "bg-red-100 text-red-600"
+                    : "bg-sky-100 text-sky-700"
+                }`}>
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-xs font-bold text-gray-700">Change Due</span>
+                  <span className="block text-[9px] text-gray-400 font-medium uppercase tracking-wider">
+                    {changeDue !== null && changeDue < 0 ? "Shortfall" : "Return to customer"}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-[10px] font-bold text-gray-400">₨</span>
+                <span className={`text-lg font-black font-mono leading-none ${
+                  changeDue === null
+                    ? "text-gray-300"
+                    : changeDue < 0
+                      ? "text-red-600"
+                      : "text-sky-700"
+                }`}>
+                  {changeDue === null ? "—" : Math.abs(changeDue)}
+                </span>
+              </div>
+            </div>
+
+            {changeDue !== null && changeDue < 0 && (
+              <p className="text-[10px] font-bold text-red-500 flex items-center gap-1.5">
+                <Banknote className="h-3 w-3" />
+                Customer still owes ₨{Math.abs(changeDue)}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Global Total Area */}
         <div className="pt-2 flex items-center justify-between border-t border-gray-100/50">
           <div className="relative group/total">
@@ -246,7 +324,7 @@ const CartItemsCard = ({
               <div className="flex items-start gap-1">
                 <span className="text-base font-bold text-gray-400 mt-0.5 leading-none">₨</span>
                 <span className="text-3xl font-black text-gray-900 tracking-tighter leading-none group-hover/total:text-indigo-600 transition-colors duration-500">
-                  {Math.round(total)}
+                  {total}
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500 ml-1 mb-0.5 animate-pulse" />
                 </span>
               </div>

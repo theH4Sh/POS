@@ -14,6 +14,7 @@ const Checkout = () => {
   const [showCustomDiscount, setShowCustomDiscount] = useState(false);
   const [autoPrint, setAutoPrint] = useState(false);
   const [lowStockThresholds, setLowStockThresholds] = useState({ default: 20 });
+  const [amountReceived, setAmountReceived] = useState("");
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -136,11 +137,13 @@ const Checkout = () => {
   const handleClearCart = () => {
     setCart([]);
     setDiscount(0);
+    setAmountReceived("");
     setLastOrder(null);
   };
 
   const switchCart = (index) => {
     setActiveCartIndex(index);
+    setAmountReceived("");
   };
 
   const handleCheckout = async () => {
@@ -179,12 +182,20 @@ const Checkout = () => {
         return;
       }
 
+      const cashIn = amountReceived === "" ? null : Number(amountReceived);
+      const changeDue =
+        cashIn !== null && !Number.isNaN(cashIn) && !isRefund
+          ? Math.round(cashIn - finalTotal)
+          : null;
+
       setLastOrder({
         items: cart,
         total: finalTotal,
         originalTotal: total,
         discount: discount,
         discountAmount: discountAmount,
+        amountReceived: cashIn !== null && !Number.isNaN(cashIn) ? Math.round(cashIn) : null,
+        changeDue,
         date: new Date().toLocaleString(),
         isRefund: isRefund,
       });
@@ -192,6 +203,7 @@ const Checkout = () => {
       toast.success(isRefund ? "Refund processed!" : "Order completed successfully!");
       setCart([]);
       setDiscount(0);
+      setAmountReceived("");
 
       // Trigger auto-print if enabled
       if (autoPrint) {
@@ -260,7 +272,7 @@ const Checkout = () => {
     nextCart: () => {
       if (activeCartIndex < carts.length - 1) setActiveCartIndex(activeCartIndex + 1);
     },
-  }), [activeCartIndex, carts.length, cart, discount, showCustomDiscount]);
+  }), [activeCartIndex, carts.length, cart, discount, showCustomDiscount, amountReceived]);
 
   useKeyboardShortcuts(shortcutActions);
 
@@ -332,6 +344,8 @@ const Checkout = () => {
             discount={discount}
             onDiscountChange={setDiscount}
             showCustomDiscount={showCustomDiscount}
+            amountReceived={amountReceived}
+            onAmountReceivedChange={setAmountReceived}
           />
         </div>
 

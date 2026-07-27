@@ -124,6 +124,22 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
               <span className="font-black text-5xl tracking-tighter">{displayOrder.total}</span>
             </div>
 
+            {/* Cash tendered / change */}
+            {displayOrder.amountReceived != null && (
+              <div className="mt-4 space-y-1 text-black font-black text-[14px]">
+                <div className="flex justify-between border-t-2 border-dashed border-gray-300 pt-3">
+                  <span>Cash Received</span>
+                  <span>{displayOrder.amountReceived}</span>
+                </div>
+                {displayOrder.changeDue != null && (
+                  <div className="flex justify-between">
+                    <span>{displayOrder.changeDue < 0 ? "Shortfall" : "Change"}</span>
+                    <span>{Math.abs(displayOrder.changeDue)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="text-center mt-10 space-y-2">
               <p className="font-black text-xl uppercase text-black border-y-2 border-dashed border-black py-2">Thank you!</p>
               <p className="text-[16px] text-black font-black">Please come again</p>
