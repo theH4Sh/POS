@@ -50,8 +50,11 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
           <div className="p-6 pb-8">
             {/* Header */}
             <div className="text-center mb-6">
-              <div className="text-xl font-black tracking-tighter mb-1">PHARMACY POS</div>
-              <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-3">Official Receipt</div>
+              <div className="flex flex-col items-center mb-2">
+                <div className="text-3xl font-black tracking-tighter leading-none text-gray-900">SHAH G</div>
+                <div className="text-[9px] font-black tracking-[0.3em] mt-1.5 uppercase border-y-2 border-gray-900 py-1 px-4">Medical Store</div>
+              </div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mt-4">Official Receipt</div>
 
               {displayOrder.isRefund && (
                 <div className="inline-block border-2 border-red-600 text-red-600 font-bold px-2 py-1 transform -rotate-6 mb-2">

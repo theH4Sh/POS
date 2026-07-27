@@ -75,7 +75,7 @@ export default function Setup() {
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
                                 <Sparkles className="w-6 h-6 text-white" />
                             </div>
-                            <span className="text-xl font-bold text-white tracking-wide">PharmacyOS</span>
+                            <span className="text-xl font-bold text-white tracking-wide">Shah G Medical Store</span>
                         </div>
 
                         <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
@@ -85,7 +85,7 @@ export default function Setup() {
                             </span>
                         </h1>
                         <p className="text-slate-400 text-lg leading-relaxed">
-                            Set up your secure administrator account to begin managing your pharmacy inventory and sales with precision.
+                            Set up your secure administrator account to begin managing your medical store inventory and sales with precision.
                         </p>
                     </div>
 

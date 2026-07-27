@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Plus, Save, X, Barcode, Keyboard } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Plus, Save, X, Barcode, Keyboard, FlaskConical, ChevronDown } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 const inputClass =
@@ -13,10 +13,34 @@ const INITIAL_FORM = {
   salePrice: "",
   description: "",
   category: "medicine",
+  formulaId: null,
 };
 
 export default function AddProductModal({ isOpen, onClose, onSuccess }) {
   const [form, setForm] = useState(INITIAL_FORM);
+  const [formulas, setFormulas] = useState([]);
+  const [formulaSearch, setFormulaSearch] = useState("");
+  const [showFormulaDropdown, setShowFormulaDropdown] = useState(false);
+  const formulaRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  // Load formulas on mount
+  useEffect(() => {
+    if (isOpen) {
+      window.api.listFormulas().then(setFormulas);
+    }
+  }, [isOpen]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowFormulaDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   // Keyboard Shortcuts: Ctrl+Enter (Submit), Esc (Close)
   useEffect(() => {
@@ -38,11 +62,47 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }) {
 
   const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
-  const reset = () => setForm(INITIAL_FORM);
+  const reset = () => {
+    setForm(INITIAL_FORM);
+    setFormulaSearch("");
+  };
 
   const handleClose = () => {
     reset();
     onClose();
+  };
+
+  const filteredFormulas = formulas.filter((f) =>
+    f.name.toLowerCase().includes(formulaSearch.toLowerCase())
+  );
+
+  const selectFormula = (formula) => {
+    update("formulaId", formula.id);
+    setFormulaSearch(formula.name);
+    setShowFormulaDropdown(false);
+  };
+
+  const handleCreateFormula = async () => {
+    if (!formulaSearch.trim()) return;
+    try {
+      const newFormula = await window.api.addFormula(formulaSearch.trim());
+      if (newFormula) {
+        setFormulas((prev) => {
+          const exists = prev.some((f) => f.id === newFormula.id);
+          return exists ? prev : [...prev, newFormula].sort((a, b) => a.name.localeCompare(b.name));
+        });
+        update("formulaId", newFormula.id);
+        setFormulaSearch(newFormula.name);
+        setShowFormulaDropdown(false);
+      }
+    } catch (err) {
+      toast.error("Failed to create formula");
+    }
+  };
+
+  const clearFormula = () => {
+    update("formulaId", null);
+    setFormulaSearch("");
   };
 
   const handleSubmit = async (e) => {
@@ -55,6 +115,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }) {
       purchasePrice: form.purchasePrice,
       salePrice: form.salePrice,
       description: form.description,
+      formulaId: form.formulaId,
     });
     reset();
     onClose();
@@ -133,6 +194,81 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }) {
                   <option value="medical-devices">Medical Equipment</option>
                   <option value="others">Others</option>
                 </select>
+              </div>
+
+              {/* Formula / Generic Name Combobox */}
+              <div className="md:col-span-2" ref={dropdownRef}>
+                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">
+                  Formula / Generic Name
+                </label>
+                <div className="relative group">
+                  <FlaskConical className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-purple-500 transition-colors z-10" />
+                  <input
+                    ref={formulaRef}
+                    className={`${inputClass} pl-11 pr-20 !bg-white !border-gray-200 focus:!border-purple-500 focus:!ring-purple-200 h-12`}
+                    placeholder="Type to search or create formula..."
+                    value={formulaSearch}
+                    onChange={(e) => {
+                      setFormulaSearch(e.target.value);
+                      setShowFormulaDropdown(true);
+                      if (!e.target.value) update("formulaId", null);
+                    }}
+                    onFocus={() => setShowFormulaDropdown(true)}
+                  />
+                  {form.formulaId && (
+                    <button
+                      type="button"
+                      onClick={clearFormula}
+                      className="absolute right-12 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-transform ${showFormulaDropdown ? 'rotate-180' : ''}`} />
+
+                  {showFormulaDropdown && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150">
+                      {filteredFormulas.length > 0 ? (
+                        filteredFormulas.map((f) => (
+                          <button
+                            key={f.id}
+                            type="button"
+                            onClick={() => selectFormula(f)}
+                            className={`w-full text-left px-4 py-2.5 text-sm hover:bg-purple-50 transition-colors flex items-center gap-2 ${form.formulaId === f.id ? 'bg-purple-50 text-purple-700 font-semibold' : 'text-gray-700'}`}
+                          >
+                            <FlaskConical className="h-3.5 w-3.5 text-purple-400 shrink-0" />
+                            {f.name}
+                          </button>
+                        ))
+                      ) : null}
+
+                      {formulaSearch.trim() && !formulas.some((f) => f.name.toLowerCase() === formulaSearch.trim().toLowerCase()) && (
+                        <button
+                          type="button"
+                          onClick={handleCreateFormula}
+                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-emerald-50 transition-colors flex items-center gap-2 text-emerald-700 font-medium border-t border-gray-100"
+                        >
+                          <Plus className="h-3.5 w-3.5 shrink-0" />
+                          Create &quot;{formulaSearch.trim()}&quot;
+                        </button>
+                      )}
+
+                      {!formulaSearch.trim() && filteredFormulas.length === 0 && (
+                        <div className="px-4 py-3 text-xs text-gray-400 italic text-center">
+                          No formulas yet. Type a name to create one.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {form.formulaId && (
+                  <div className="mt-1.5 ml-1">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100">
+                      <FlaskConical className="h-3 w-3" />
+                      {formulaSearch}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

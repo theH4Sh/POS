@@ -4,9 +4,7 @@
   min-height: 100vh;
 }
 
-body {
-  background-color: #F9FAFB;
-}
+
 
 @media print {
   @page {
@@ -14,7 +12,8 @@ body {
     margin: 0;
   }
 
-  html, body {
+  html,
+  body {
     width: 80mm;
     margin: 0;
     padding: 0;

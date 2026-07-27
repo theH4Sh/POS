@@ -29,11 +29,11 @@ export const Navbar = () => {
             <div className="h-11 w-11 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
               <ShoppingCart className="h-6 w-6 text-white" />
             </div>
-            <div className="flex flex-col">
-              <h1 className="text-xl font-black bg-gradient-to-r from-blue-700 to-indigo-900 bg-clip-text text-transparent leading-none tracking-tight">
-                PHARMACY <span className="text-blue-600">POS</span>
+            <div className="flex flex-col -space-y-1">
+              <h1 className="text-2xl font-black bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 bg-clip-text text-transparent tracking-tighter">
+                SHAH G
               </h1>
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Streamlined Efficiency</span>
+              <span className="text-[10px] font-black text-blue-600/60 uppercase tracking-[0.3em] ml-0.5">Medical Store</span>
             </div>
           </div>
 

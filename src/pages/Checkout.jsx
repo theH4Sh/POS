@@ -184,7 +184,7 @@ const Checkout = () => {
       // Trigger auto-print if enabled
       if (autoPrint && !isRefund) {
         setTimeout(() => {
-          window.print();
+          window.api.print();
         }, 300); // Small delay to ensure receipt preview has updated
       }
     } catch (err) {
@@ -241,7 +241,7 @@ const Checkout = () => {
     },
     deleteCart: () => deleteCart(activeCartIndex),
     checkout: () => handleCheckout(),
-    printReceipt: () => window.print(),
+    printReceipt: () => window.api.print(),
     prevCart: () => {
       if (activeCartIndex > 0) setActiveCartIndex(activeCartIndex - 1);
     },

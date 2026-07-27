@@ -12,6 +12,11 @@ contextBridge.exposeInMainWorld("api", {
   deleteCashier: (id) => ipcRenderer.invoke("auth:deleteCashier", id),
   updateProfile: (data) => ipcRenderer.invoke("auth:updateProfile", data),
 
+  // Formulas
+  listFormulas: () => ipcRenderer.invoke("formula:list"),
+  addFormula: (name) => ipcRenderer.invoke("formula:add", { name }),
+  deleteFormula: (id) => ipcRenderer.invoke("formula:delete", id),
+
   // Medicine
   addMedicine: (data) => ipcRenderer.invoke("medicine:add", data),
   listMedicines: () => ipcRenderer.invoke("medicine:list"),
@@ -27,4 +32,5 @@ contextBridge.exposeInMainWorld("api", {
   exportOrders: (data) => ipcRenderer.invoke("orders:export", data),
   importInventory: () => ipcRenderer.invoke("medicine:import"),
   exportInventory: () => ipcRenderer.invoke("medicine:export"),
+  print: () => ipcRenderer.invoke("system:print"),
 });

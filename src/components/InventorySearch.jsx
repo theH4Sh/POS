@@ -8,7 +8,7 @@ export default function InventorySearch({ value, onChange }) {
       </div>
       <input
         type="text"
-        placeholder="Search inventory by name, category or barcode..."
+        placeholder="Search by name, barcode, or formula..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full h-14 pl-12 pr-4 bg-white border-2 border-transparent shadow-[0_2px_10px_rgba(0,0,0,0.02)] rounded-2xl text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all duration-300 font-medium"

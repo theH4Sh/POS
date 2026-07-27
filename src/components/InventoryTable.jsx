@@ -1,4 +1,4 @@
-import { SquarePen, TriangleAlert, Trash2, ListFilter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { SquarePen, TriangleAlert, Trash2, ListFilter, ArrowUpDown, ArrowUp, ArrowDown, FlaskConical } from "lucide-react";
 import { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 
@@ -68,6 +68,12 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
           </p>
           <div className="flex justify-between items-center text-[10px] text-white/50 bg-white/5 p-2 rounded-lg">
             <span className="font-bold uppercase">{hoveredProduct.category || "General"}</span>
+            {hoveredProduct.formulaName && (
+              <span className="font-mono bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30 flex items-center gap-1">
+                <FlaskConical className="h-2.5 w-2.5" />
+                {hoveredProduct.formulaName}
+              </span>
+            )}
             <span className="font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">{hoveredProduct.stock || 0} IN STOCK</span>
           </div>
         </div>,
@@ -129,6 +135,12 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
                         <span className="text-[10px] font-black uppercase text-blue-600 tracking-tighter bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
                           {p.category || "Uncategorized"}
                         </span>
+                        {p.formulaName && (
+                          <span className="text-[10px] font-bold uppercase text-purple-600 tracking-tighter bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100 flex items-center gap-1">
+                            <FlaskConical className="h-2.5 w-2.5" />
+                            {p.formulaName}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </td>

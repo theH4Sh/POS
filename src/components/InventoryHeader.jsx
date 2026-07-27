@@ -1,6 +1,6 @@
-import { ListFilter, Plus, Upload, Download } from "lucide-react";
+import { ListFilter, Plus, Upload, Download, FlaskConical } from "lucide-react";
 
-export default function InventoryHeader({ onAddProduct, onImport, onExport, isAdmin }) {
+export default function InventoryHeader({ onAddProduct, onImport, onExport, onManageFormulas, isAdmin }) {
   return (
     <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 p-8 flex flex-wrap items-center justify-between gap-6">
       <div className="flex items-center gap-5">
@@ -37,6 +37,15 @@ export default function InventoryHeader({ onAddProduct, onImport, onExport, isAd
             >
               <Upload className="h-4 w-4 text-blue-300" />
               <span className="text-sm">Export</span>
+            </button>
+            <button
+              type="button"
+              onClick={onManageFormulas}
+              className="flex items-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/20 transition-all active:scale-95"
+              title="Manage Formulas"
+            >
+              <FlaskConical className="h-4 w-4 text-purple-300" />
+              <span className="text-sm">Formulas</span>
             </button>
           </>
         )}

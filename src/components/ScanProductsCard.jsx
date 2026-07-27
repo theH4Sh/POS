@@ -1,4 +1,4 @@
-import { Barcode, Search, AlertCircle, Loader } from "lucide-react";
+import { Barcode, Search, AlertCircle, Loader, FlaskConical } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "react-hot-toast";
@@ -195,12 +195,12 @@ const ScanProductsCard = ({ onProductScanned, barcodeRef, searchRef }) => {
           <div className="space-y-3">
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
               <Search className="h-3.5 w-3.5" />
-              Search by Name
+              Search by Name or Formula
             </label>
             <form onSubmit={handleSearchSubmit} className="relative group">
               <input
                 type="text"
-                placeholder="Type product name..."
+                placeholder="Type product name or formula..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-12 pl-4 pr-24 bg-gray-50 border-2 border-transparent transition-all duration-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-gray-900 focus:ring-4 focus:ring-gray-900/10 outline-none"
@@ -252,6 +252,12 @@ const ScanProductsCard = ({ onProductScanned, barcodeRef, searchRef }) => {
                             }`}>
                             {product.stock || 0} left
                           </span>
+                          {product.formulaName && (
+                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 flex items-center gap-0.5">
+                              <FlaskConical className="h-2.5 w-2.5" />
+                              {product.formulaName}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="text-right">
