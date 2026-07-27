@@ -1,4 +1,4 @@
-import { ShoppingCart, Trash2, Banknote, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { ShoppingCart, Trash2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 const CartItemsCard = ({
@@ -36,7 +36,7 @@ const CartItemsCard = ({
       : null;
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white shadow-xl flex flex-col h-[680px] overflow-hidden">
+    <div className="rounded-2xl border border-gray-200 bg-white shadow-xl flex flex-col h-[600px] overflow-hidden">
 
       {/* Header */}
       <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
@@ -237,128 +237,115 @@ const CartItemsCard = ({
           </div>
         </div>
 
-        {/* Items Price Row */}
-        <div className="flex justify-between items-center px-1">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Items Price</span>
-          <div className="flex items-baseline gap-1">
-            <span className="text-[10px] font-bold text-gray-400">₨</span>
-            <span className="text-base font-black text-gray-700 font-mono leading-none">{Math.round(subtotal)}</span>
-          </div>
-        </div>
-
-        {/* Cash In / Cash Out */}
-        {!isRefund && cart.length > 0 && (
-          <div className="bg-emerald-50/60 border border-emerald-100/80 rounded-xl p-3 space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg shrink-0">
-                  <ArrowDownLeft className="h-3.5 w-3.5" />
-                </div>
-                <div className="min-w-0">
-                  <span className="block text-xs font-bold text-gray-700">Cash Received</span>
-                  <span className="block text-[9px] text-gray-400 font-medium uppercase tracking-wider">Amount tendered</span>
+        {/* Money — minimal, right-aligned */}
+        {!isRefund && cart.length > 0 ? (
+          <div className="flex flex-col items-end gap-1.5">
+            <div className="w-full max-w-[220px] space-y-1">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Cash In</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-gray-400">₨</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    data-cash-input="true"
+                    value={amountReceived}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^\d]/g, "");
+                      onAmountReceivedChange(val);
+                    }}
+                    className="w-24 bg-transparent text-right text-sm font-semibold text-gray-900 font-mono outline-none border-b border-gray-200 focus:border-gray-500 placeholder:text-gray-300 pb-0.5"
+                    placeholder="0"
+                  />
                 </div>
               </div>
-              <div className="relative">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">₨</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  data-cash-input="true"
-                  value={amountReceived}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^\d]/g, "");
-                    onAmountReceivedChange(val);
-                  }}
-                  className="w-28 h-8 pl-6 pr-2 bg-white border border-emerald-200 rounded-lg text-right text-sm font-black text-gray-800 font-mono focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all shadow-sm"
-                  placeholder="0"
-                />
-              </div>
-            </div>
 
-            <div className="flex items-center justify-between gap-3 pt-1 border-t border-emerald-100/80">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className={`p-1.5 rounded-lg shrink-0 ${
-                  changeDue !== null && changeDue < 0
-                    ? "bg-red-100 text-red-600"
-                    : "bg-sky-100 text-sky-700"
-                }`}>
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </div>
-                <div className="min-w-0">
-                  <span className="block text-xs font-bold text-gray-700">Change Due</span>
-                  <span className="block text-[9px] text-gray-400 font-medium uppercase tracking-wider">
-                    {changeDue !== null && changeDue < 0 ? "Shortfall" : "Return to customer"}
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+                  {changeDue !== null && changeDue < 0 ? "Owes" : "Cash Out"}
+                </span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-gray-400">₨</span>
+                  <span className={`w-24 text-right text-sm font-semibold font-mono ${
+                    changeDue === null
+                      ? "text-gray-300"
+                      : changeDue < 0
+                        ? "text-red-500"
+                        : "text-gray-900"
+                  }`}>
+                    {changeDue === null ? "—" : Math.abs(changeDue)}
                   </span>
                 </div>
               </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-[10px] font-bold text-gray-400">₨</span>
-                <span className={`text-lg font-black font-mono leading-none ${
-                  changeDue === null
-                    ? "text-gray-300"
-                    : changeDue < 0
-                      ? "text-red-600"
-                      : "text-sky-700"
-                }`}>
-                  {changeDue === null ? "—" : Math.abs(changeDue)}
-                </span>
-              </div>
-            </div>
 
-            {changeDue !== null && changeDue < 0 && (
-              <p className="text-[10px] font-bold text-red-500 flex items-center gap-1.5">
-                <Banknote className="h-3 w-3" />
-                Customer still owes ₨{Math.abs(changeDue)}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Global Total Area */}
-        <div className="pt-2 flex items-center justify-between border-t border-gray-100/50">
-          <div className="relative group/total">
-            <span className="block text-[9px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-0.5">Total</span>
-            <div className="flex items-center gap-3">
-              <div className="flex items-start gap-1">
-                <span className="text-base font-bold text-gray-400 mt-0.5 leading-none">₨</span>
-                <span className="text-3xl font-black text-gray-900 tracking-tighter leading-none group-hover/total:text-indigo-600 transition-colors duration-500">
-                  {total}
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500 ml-1 mb-0.5 animate-pulse" />
-                </span>
+              <div className="flex items-center justify-between gap-4 pt-1 border-t border-gray-100">
+                <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[10px] text-gray-400">₨</span>
+                  <span className="text-xl font-bold text-gray-900 font-mono tracking-tight">{total}</span>
+                </div>
               </div>
+
               {discount > 0 && (
-                <div className="flex flex-col">
-                  <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black rounded-lg shadow-sm border border-emerald-200/50 flex items-center gap-1 animate-in fade-in zoom-in duration-300">
-                    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-ping" />
-                    SAVED ₨{Math.round(discountAmount)}
-                  </span>
+                <div className="text-right text-[10px] text-emerald-600 font-medium">
+                  saved ₨{Math.round(discountAmount)}
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onClearCart}
-              disabled={cart.length === 0}
-              className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-all uppercase tracking-widest disabled:opacity-0 py-2 px-1"
-            >
-              Discard
-            </button>
-            <button
-              onClick={onCheckout}
-              disabled={cart.length === 0}
-              className="group relative bg-gray-900 text-white pl-5 pr-4 py-3 rounded-xl font-black hover:bg-black hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.2)] active:scale-95 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-3 overflow-hidden"
-            >
-              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-500 group-hover:w-full transition-all duration-500 opacity-0 group-hover:opacity-10" />
-              <span className="relative text-[11px] tracking-wider uppercase">Confirm Payment</span>
-              <div className="relative p-1 bg-white/10 rounded-md group-hover:bg-white/20 transition-colors">
-                <span className="block text-sm translate-x-0 group-hover:translate-x-0.5 transition-transform">→</span>
-              </div>
-            </button>
+            <div className="flex items-center gap-1 pt-0.5">
+              {[100, 500, 1000, 5000].map((note) => (
+                <button
+                  key={note}
+                  type="button"
+                  onClick={() => {
+                    const current = cashIn === null || Number.isNaN(cashIn) ? 0 : cashIn;
+                    onAmountReceivedChange(String(current + note));
+                  }}
+                  className="px-2 py-1 text-[10px] font-medium font-mono text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                >
+                  {note.toLocaleString()}
+                </button>
+              ))}
+              {amountReceived !== "" && (
+                <button
+                  type="button"
+                  onClick={() => onAmountReceivedChange("")}
+                  className="px-2 py-1 text-[10px] font-medium text-gray-400 hover:text-red-500 rounded transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
+        ) : (
+          <div className="flex justify-end items-baseline gap-2 px-1">
+            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Items</span>
+            <span className="text-sm font-semibold text-gray-700 font-mono">₨{Math.round(subtotal)}</span>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="pt-2 flex items-center justify-end gap-3 border-t border-gray-100/50">
+          <button
+            onClick={onClearCart}
+            disabled={cart.length === 0}
+            className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-all uppercase tracking-widest disabled:opacity-0 py-2 px-1"
+          >
+            Discard
+          </button>
+          <button
+            onClick={onCheckout}
+            disabled={cart.length === 0}
+            className="group relative bg-gray-900 text-white pl-5 pr-4 py-3 rounded-xl font-black hover:bg-black hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.2)] active:scale-95 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-3 overflow-hidden"
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-500 group-hover:w-full transition-all duration-500 opacity-0 group-hover:opacity-10" />
+            <span className="relative text-[11px] tracking-wider uppercase">Confirm Payment</span>
+            <div className="relative p-1 bg-white/10 rounded-md group-hover:bg-white/20 transition-colors">
+              <span className="block text-sm translate-x-0 group-hover:translate-x-0.5 transition-transform">→</span>
+            </div>
+          </button>
         </div>
       </div>
     </div>
