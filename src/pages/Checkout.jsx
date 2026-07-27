@@ -13,6 +13,7 @@ const Checkout = () => {
   const [lastOrder, setLastOrder] = useState(null);
   const [showCustomDiscount, setShowCustomDiscount] = useState(false);
   const [autoPrint, setAutoPrint] = useState(false);
+  const [lowStockThresholds, setLowStockThresholds] = useState({ default: 20 });
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -20,6 +21,17 @@ const Checkout = () => {
         const settings = await window.api.getSettings();
         if (settings.autoPrintCheckout !== undefined) {
           setAutoPrint(settings.autoPrintCheckout);
+        }
+        if (settings.lowStockThreshold !== undefined) {
+          const thresholds = { default: parseInt(settings.lowStockThreshold) || 20 };
+          const categories = ["medicine", "cosmetics", "supplements", "medical-devices", "others"];
+          categories.forEach(cat => {
+            const key = `lowStockThreshold_${cat}`;
+            if (settings[key]) {
+              thresholds[cat] = parseInt(settings[key]);
+            }
+          });
+          setLowStockThresholds(thresholds);
         }
       } catch (err) {
         console.error("Error loading settings:", err);
@@ -182,7 +194,7 @@ const Checkout = () => {
       setDiscount(0);
 
       // Trigger auto-print if enabled
-      if (autoPrint && !isRefund) {
+      if (autoPrint) {
         setTimeout(() => {
           window.api.print();
         }, 300); // Small delay to ensure receipt preview has updated
@@ -254,8 +266,8 @@ const Checkout = () => {
 
   return (
     <div className="flex flex-col gap-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-      {/* Top Section: Cart and Lookup */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Top Section: Cart and Lookup - HIDDEN ON PRINT */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print-hidden">
         {/* Left Col: Cart (Larger) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Cart Tabs - Modern Segmented Control */}
@@ -329,14 +341,15 @@ const Checkout = () => {
             onProductScanned={handleProductScanned}
             barcodeRef={barcodeRef}
             searchRef={searchRef}
+            lowStockThresholds={lowStockThresholds}
           />
         </div>
       </div>
 
       {/* Bottom Section: Receipt and Alerts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-200 pt-8 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-200 pt-8 mt-4 print:border-none print:pt-0 print:mt-0">
         <ReceiptCard cart={cart} lastOrder={lastOrder} discount={discount} />
-        <div className="space-y-6">
+        <div className="space-y-6 print-hidden">
           <h3 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
             Inventory Insights

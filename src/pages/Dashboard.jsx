@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
-import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar, X, Receipt, Search, Filter, FileSpreadsheet } from "lucide-react";
+import { TrendingUp, ShoppingCart, DollarSign, AlertCircle, Package, Calendar, X, Receipt, Search, Filter, FileSpreadsheet, ChevronDown, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
@@ -56,9 +56,10 @@ const Dashboard = () => {
     }
   }, [user, navigate]);
 
-  const [period, setPeriod] = useState("monthly");
+  const [period, setPeriod] = useState("daily");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalCost: 0,
@@ -74,6 +75,7 @@ const Dashboard = () => {
 
   // Search and Filter State
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchType, setSearchType] = useState('all'); // all, id, amount, cashier
   const [filterProcessor, setFilterProcessor] = useState('all');
 
   // Derived State: Unique Processors
@@ -81,9 +83,25 @@ const Dashboard = () => {
 
   // Derived State: Filtered Orders
   const filteredOrders = recentOrders.filter(order => {
-    const matchesSearch = order.id.toString().includes(searchQuery) ||
-      order.total.toString().includes(searchQuery);
+    const query = searchQuery.trim().toLowerCase().replace(/^#/, '');
     const matchesProcessor = filterProcessor === 'all' || order.processedBy === filterProcessor;
+
+    if (!query) return matchesProcessor;
+
+    let matchesSearch = false;
+    if (searchType === 'all') {
+      matchesSearch =
+        order.id.toString().includes(query) ||
+        order.total.toString().includes(query) ||
+        order.processedBy.toLowerCase().includes(query);
+    } else if (searchType === 'id') {
+      matchesSearch = order.id.toString().includes(query);
+    } else if (searchType === 'amount') {
+      matchesSearch = order.total.toString().includes(query);
+    } else if (searchType === 'cashier') {
+      matchesSearch = order.processedBy.toLowerCase().includes(query);
+    }
+
     return matchesSearch && matchesProcessor;
   });
   const [loading, setLoading] = useState(true);
@@ -122,6 +140,8 @@ const Dashboard = () => {
           params = { period: "custom-year", year: selectedYear };
         } else if (period === "custom-month") {
           params = { period: "custom-month", year: selectedYear, month: selectedMonth };
+        } else if (period === "custom-date") {
+          params = { period: "custom-date", date: selectedDate };
         }
 
         const dashboardData = await window.api.getDashboardStats(params);
@@ -136,11 +156,25 @@ const Dashboard = () => {
     };
 
     loadDashboard();
-  }, [period, selectedYear, selectedMonth]);
+  }, [period, selectedYear, selectedMonth, selectedDate]);
+
+  // Handle Esc key for order details modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setSelectedOrder(null);
+      }
+    };
+    if (selectedOrder) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedOrder]);
 
   const getPeriodLabel = () => {
     if (period === "custom-year") return `Year ${selectedYear}`;
     if (period === "custom-month") return `${new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long', year: 'numeric' })}`;
+    if (period === "custom-date") return new Date(selectedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     return periodLabels[period];
   };
 
@@ -228,6 +262,22 @@ const Dashboard = () => {
                   ))}
                 </select>
                 <button onClick={() => setPeriod("custom-month")} className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${period === "custom-month" ? "bg-rose-600 text-white" : "text-gray-400 hover:text-gray-600"}`}>Month</button>
+              </div>
+
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-3xl transition-all duration-300 border-2 ${period === "custom-date" ? "bg-teal-50 border-teal-200" : "bg-gray-50/50 border-transparent"}`}>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  max={new Date().toISOString().split("T")[0]}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setSelectedDate(e.target.value);
+                      setPeriod("custom-date");
+                    }
+                  }}
+                  className="bg-transparent text-sm font-black text-gray-700 outline-none cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-50 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+                />
+                <button onClick={() => setPeriod("custom-date")} className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${period === "custom-date" ? "bg-teal-600 text-white" : "text-gray-400 hover:text-gray-600"}`}>Date</button>
               </div>
             </div>
           </div>
@@ -412,35 +462,61 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Search and Filters Bar */}
-          <div className="p-4 bg-white border-b border-gray-100 flex items-center justify-between gap-4">
-            {/* Search */}
-            <div className="flex-1 relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-              <input
-                type="text"
-                placeholder="Search by Order ID or Amount..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-400"
-              />
+          <div className="p-4 bg-white border-b border-gray-100 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
+            <div className="flex-1 flex items-stretch gap-2 bg-gray-50 p-1.5 rounded-2xl border border-gray-100 focus-within:bg-white focus-within:border-blue-500/30 focus-within:ring-4 focus-within:ring-blue-500/5 transition-all">
+              {/* Search Type Selector */}
+              <div className="relative group min-w-[130px]">
+                <select
+                  value={searchType}
+                  onChange={(e) => setSearchType(e.target.value)}
+                  className="w-full pl-4 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl outline-none transition-all font-black text-gray-700 text-[10px] uppercase tracking-widest appearance-none cursor-pointer hover:border-blue-300"
+                >
+                  <option value="all">All</option>
+                  <option value="id">ID #</option>
+                  <option value="amount">Amount</option>
+                  <option value="cashier">Cashier</option>
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <ChevronDown className="h-3 w-3" />
+                </div>
+              </div>
+
+              {/* Search Input */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={
+                    searchType === 'id' ? "Order #..." :
+                      searchType === 'amount' ? "Exact amount..." :
+                        searchType === 'cashier' ? "Staff name..." :
+                          "Search orders..."
+                  }
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-transparent outline-none font-bold text-gray-700 placeholder:text-gray-400 placeholder:font-medium text-sm"
+                />
+              </div>
             </div>
 
             {/* Processor Filter */}
-            <div className="relative group min-w-[200px]">
-              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+            <div className="relative group min-w-[220px]">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none border-r border-gray-200 pr-3 mr-4">
+                <Users className="h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Staff:</span>
+              </div>
               <select
                 value={filterProcessor}
                 onChange={(e) => setFilterProcessor(e.target.value)}
-                className="w-full pl-12 pr-10 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all font-bold text-gray-700 appearance-none cursor-pointer"
+                className="w-full pl-24 pr-10 py-3.5 bg-gray-50 border-2 border-transparent rounded-[1.25rem] focus:bg-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all font-black text-gray-700 text-xs appearance-none cursor-pointer"
               >
                 <option value="all">All Cashiers</option>
                 {uniqueProcessors.map(processor => (
                   <option key={processor} value={processor}>{processor}</option>
                 ))}
               </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                <div className="h-0 w-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-400"></div>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <ChevronDown className="h-4 w-4" />
               </div>
             </div>
           </div>
@@ -529,7 +605,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-black text-white tracking-tight">Order Details</h2>
-                  <p className="text-blue-100 text-sm font-bold mt-0.5">Audit ID: #{selectedOrder.id}</p>
+                  <p className="text-blue-100 text-sm font-bold mt-0.5">Order ID: #{selectedOrder.id}</p>
                 </div>
               </div>
               <button

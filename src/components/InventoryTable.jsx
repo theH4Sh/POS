@@ -2,7 +2,7 @@ import { SquarePen, TriangleAlert, Trash2, ListFilter, ArrowUpDown, ArrowUp, Arr
 import { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 
-export default function InventoryTable({ products, onEditProduct, onDeleteProduct, canEdit = false }) {
+export default function InventoryTable({ products, onEditProduct, onDeleteProduct, isAdmin = false, lowStockThresholds = { default: 20 }, loading = false }) {
   // Tooltip state
   const [hoveredProduct, setHoveredProduct] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -112,7 +112,39 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {sortedProducts.length > 0 ? (
+            {loading ? (
+              Array.from({ length: 5 }).map((_, idx) => (
+                <tr key={`skeleton-${idx}`} className="animate-pulse">
+                  <td className="px-6 py-5">
+                    <div className="h-6 w-24 bg-gray-100 rounded-md"></div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="space-y-2">
+                      <div className="h-5 w-40 bg-gray-100 rounded-md"></div>
+                      <div className="h-3 w-20 bg-gray-50 rounded-md"></div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="h-4 w-20 bg-gray-100 rounded-md"></div>
+                      <div className="h-4 w-20 bg-gray-100 rounded-md"></div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="h-6 w-12 bg-gray-100 rounded-md"></div>
+                      <div className="h-4 w-16 bg-gray-50 rounded-full"></div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <div className="flex justify-end gap-2">
+                      <div className="h-9 w-9 bg-gray-50 rounded-xl"></div>
+                      <div className="h-9 w-9 bg-gray-50 rounded-xl"></div>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : sortedProducts.length > 0 ? (
               sortedProducts.map((p) => (
                 <tr
                   key={p.id}
@@ -164,7 +196,7 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
                   <td className="px-6 py-5" onMouseEnter={() => setHoveredProduct(p)}>
                     <div className="flex flex-col items-center gap-2">
                       <div className="flex items-center gap-2">
-                        <span className={`text-xl font-black font-mono tracking-tighter ${p.stock < 10 ? 'text-red-600 animate-pulse' : 'text-gray-900'}`}>
+                        <span className={`text-xl font-black font-mono tracking-tighter ${p.stock < ((lowStockThresholds[p.category] || lowStockThresholds.default) / 2) ? 'text-red-600 animate-pulse' : 'text-gray-900'}`}>
                           {p.stock}
                         </span>
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">units</span>
@@ -186,7 +218,7 @@ export default function InventoryTable({ products, onEditProduct, onDeleteProduc
 
                   {/* Actions */}
                   <td className="px-6 py-5 text-right whitespace-nowrap" onMouseEnter={() => setHoveredProduct(null)}>
-                    {canEdit && (
+                    {isAdmin && (
                       <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
                         <button
                           onClick={(e) => { e.stopPropagation(); onEditProduct(p); }}

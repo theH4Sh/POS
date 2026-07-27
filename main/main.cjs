@@ -6,8 +6,7 @@ const bcrypt = require("bcryptjs");
 const XLSX = require("xlsx");
 const crypto = require("crypto");
 const { machineIdSync } = require("node-machine-id");
-const dotenv = require("dotenv");
-dotenv.config();
+const { ALLOWED_MACHINE } = require("./config.cjs");
 
 // Disable Hardware Acceleration for physical display rendering stability
 app.disableHardwareAcceleration();
@@ -24,12 +23,13 @@ function getMachineHash() {
 }
 
 function enforceMachineLock() {
-  const allowedMachineHash = process.env.ALLOWED_MACHINE;
+  const allowedMachineHash = ALLOWED_MACHINE;
   const currentMachineHash = getMachineHash();
   if (currentMachineHash !== allowedMachineHash) {
     dialog.showErrorBox(
       "Unauthorized Machine",
-      `This machine is not authorized to run this application\nCurrent Machine Hash: ${currentMachineHash}\nAllowed Machine Hash: ${allowedMachineHash}`
+      "This machine is not authorized to run this application"
+      // \nCurrent Machine Hash: ${currentMachineHash}\nAllowed Machine Hash: ${allowedMachineHash}
     );
     app.quit();
   }
@@ -67,7 +67,12 @@ function createWindow() {
 // ===== SYSTEM HANDLERS =====
 ipcMain.handle("system:print", () => {
   if (mainWindow) {
-    mainWindow.webContents.print({ silent: true, printBackground: true });
+    mainWindow.webContents.print({
+      silent: true,
+      printBackground: true,
+      pageSize: { width: 80000, height: 297000 },
+      margins: { marginType: 'none' }, // Some versions of Electron support this to zoom out
+    });
     return { success: true };
   }
   return { success: false, message: "No active window" };
@@ -488,13 +493,23 @@ ipcMain.handle("medicine:delete", (_, id) => {
 // Get low stock alerts
 ipcMain.handle("medicine:lowStock", () => {
   try {
-    const result = db.prepare(`
-      SELECT * FROM products 
-      WHERE quantity < 20 
-      ORDER BY quantity ASC
-    `).all();
+    // Get all settings to find thresholds
+    const allSettings = db.prepare("SELECT key, value FROM settings").all();
+    const settingsMap = {};
+    allSettings.forEach(s => settingsMap[s.key] = s.value);
 
-    return result || [];
+    const globalThreshold = parseInt(settingsMap.lowStockThreshold) || 20;
+
+    const allProducts = db.prepare(`SELECT * FROM products`).all();
+
+    const lowStockProducts = allProducts.filter(p => {
+      const categoryThresholdKey = `lowStockThreshold_${p.category}`;
+      const threshold = parseInt(settingsMap[categoryThresholdKey]) || globalThreshold;
+      return p.quantity < threshold;
+    });
+
+    // Sort by quantity
+    return lowStockProducts.sort((a, b) => a.quantity - b.quantity);
   } catch (err) {
     console.error("Error getting low stock:", err);
     return [];
@@ -567,10 +582,11 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
     const now = new Date();
     let startDate, endDate;
 
-    // Handle both string period and object with {period, year, month}
+    // Handle both string period and object with {period, year, month, date}
     let period = typeof params === "string" ? params : params.period;
     const customYear = typeof params === "object" ? params.year : null;
     const customMonth = typeof params === "object" ? params.month : null; // 0-indexed or 1-indexed? Let's assume passed as 0-11 for consistency with Date
+    const customDate = typeof params === "object" ? params.date : null;
 
     // Calculate date range based on period
     if (period === "daily") {
@@ -588,6 +604,11 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
     } else if (period === "custom-month" && customYear && customMonth !== undefined) {
       startDate = new Date(customYear, customMonth, 1);
       endDate = new Date(customYear, customMonth + 1, 0, 23, 59, 59, 999);
+    } else if (period === "custom-date" && customDate) {
+      startDate = new Date(customDate);
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(customDate);
+      endDate.setHours(23, 59, 59, 999);
     } else {
       // overall - no date filter
       startDate = new Date(0);
@@ -661,8 +682,18 @@ ipcMain.handle("getDashboardStats", (_, params = "monthly") => {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
 
+    // Get low stock thresholds
+    const allSettings = db.prepare("SELECT key, value FROM settings").all();
+    const settingsMap = {};
+    allSettings.forEach(s => settingsMap[s.key] = s.value);
+    const globalThreshold = parseInt(settingsMap.lowStockThreshold) || 20;
+
     // Get low stock products (always overall, not period-specific)
-    const lowStockCount = products.filter((p) => p.quantity < 20).length;
+    const lowStockCount = products.filter((p) => {
+      const categoryThresholdKey = `lowStockThreshold_${p.category}`;
+      const threshold = parseInt(settingsMap[categoryThresholdKey]) || globalThreshold;
+      return p.quantity < threshold;
+    }).length;
 
     return {
       stats: {

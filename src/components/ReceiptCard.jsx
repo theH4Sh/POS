@@ -41,20 +41,20 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
         {/* THE RECEIPT PAPER */}
         <div
           id="print-area"
-          className="bg-white w-full max-w-[320px] shadow-sm text-gray-900 font-mono text-xs relative flex flex-col shrink-0 h-fit" style={{
+          className="bg-white w-full max-w-[420px] shadow-sm text-black font-mono text-[14px] relative flex flex-col shrink-0 h-fit tracking-tighter" style={{
             filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))',
           }}
         >
           {/* Paper Texture Pattern (CSS-only subtle noise could be added here if needed) */}
 
-          <div className="p-6 pb-8">
+          <div className="p-6 pb-8 print:p-0">
             {/* Header */}
             <div className="text-center mb-6">
               <div className="flex flex-col items-center mb-2">
-                <div className="text-3xl font-black tracking-tighter leading-none text-gray-900">SHAH G</div>
-                <div className="text-[9px] font-black tracking-[0.3em] mt-1.5 uppercase border-y-2 border-gray-900 py-1 px-4">Medical Store</div>
+                <div className="text-4xl font-black tracking-tighter leading-none text-black">SHAH G</div>
+                <div className="text-[14px] font-black tracking-[0.25em] mt-2 uppercase border-y-2 border-black py-1.5 px-6 text-black">Medical Store</div>
               </div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mt-4">Official Receipt</div>
+              <div className="text-[15px] text-black font-black uppercase tracking-[0.1em] mt-5">Official Receipt</div>
 
               {displayOrder.isRefund && (
                 <div className="inline-block border-2 border-red-600 text-red-600 font-bold px-2 py-1 transform -rotate-6 mb-2">
@@ -62,30 +62,35 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
                 </div>
               )}
 
-              <div className="text-gray-500 text-[10px]">{displayOrder.date}</div>
+              <div className="text-black text-[14px] font-black">{displayOrder.date}</div>
+              <div className="text-[14px] text-black mt-3 font-black uppercase text-center leading-relaxed">
+                Main Street, Madina Town<br />
+                Bhara Kahu, Islamabad<br />
+                PH: 0313-5259204
+              </div>
             </div>
 
             <div className="border-b-2 border-dashed border-gray-300 my-4"></div>
 
             {/* Column Header */}
-            <div className="flex font-bold text-[10px] text-gray-500 uppercase mb-2">
+            <div className="flex font-black text-[14px] text-black border-b-2 border-dashed border-black uppercase mb-3 pb-1">
               <div className="flex-1">Item</div>
-              <div className="w-6 text-center">Qty</div>
-              <div className="w-12 text-right">Price</div>
-              <div className="w-12 text-right">Total</div>
+              <div className="w-12 text-center">Qty</div>
+              <div className="w-16 text-right">Price</div>
+              <div className="w-16 text-right">Total</div>
             </div>
 
             {/* Items */}
             <div className="space-y-2 mb-4">
               {displayOrder.items && displayOrder.items.length > 0 ? (
                 displayOrder.items.map((item, idx) => (
-                  <div key={idx} className="flex text-gray-800 leading-tight">
+                  <div key={idx} className="flex text-black font-black text-[14px] leading-snug">
                     <div className="flex-1 pr-1 truncate">{item.name}</div>
-                    <div className="w-6 text-center text-gray-500">{item.quantity}</div>
-                    <div className="w-12 text-right text-gray-500">
+                    <div className="w-12 text-center text-black">{item.quantity}</div>
+                    <div className="w-16 text-right text-black">
                       {Math.round(parseFloat(item.salePrice))}
                     </div>
-                    <div className="w-12 text-right font-semibold">
+                    <div className="w-16 text-right font-black">
                       {Math.round(parseFloat(item.salePrice) * item.quantity)}
                     </div>
                   </div>
@@ -101,11 +106,11 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
             <div className="space-y-1 text-right">
               {displayOrder.discount > 0 && (
                 <>
-                  <div className="flex justify-between text-gray-500">
+                  <div className="flex justify-between text-black font-black text-[14px]">
                     <span>Subtotal</span>
                     <span>{displayOrder.originalTotal}</span>
                   </div>
-                  <div className="flex justify-between text-red-600">
+                  <div className="flex justify-between text-black font-black text-[14px] border-b-2 border-dashed border-black">
                     <span>Discount ({displayOrder.discount}%)</span>
                     <span>-{displayOrder.discountAmount}</span>
                   </div>
@@ -114,20 +119,29 @@ const ReceiptCard = ({ cart, lastOrder, discount = 0 }) => {
             </div>
 
             {/* Total */}
-            <div className={`flex justify-between items-end mt-3 pt-3 border-t-2 border-gray-800 ${displayOrder.isRefund ? 'text-red-600' : 'text-gray-900'}`}>
-              <span className="font-bold text-sm uppercase">Total</span>
-              <span className="font-black text-2xl tracking-tighter">{displayOrder.total}</span>
+            <div className={`flex justify-between items-end mt-4 pt-4 border-t-2 border-black ${displayOrder.isRefund ? 'text-red-600' : 'text-black'}`}>
+              <span className="font-black text-2xl uppercase">Total</span>
+              <span className="font-black text-5xl tracking-tighter">{displayOrder.total}</span>
             </div>
 
-            <div className="text-center mt-8 space-y-1">
-              <p className="font-bold text-xs uppercase text-gray-800">Thank you!</p>
-              <p className="text-[10px] text-gray-400">Please come again</p>
+            <div className="text-center mt-10 space-y-2">
+              <p className="font-black text-xl uppercase text-black border-y-2 border-dashed border-black py-2">Thank you!</p>
+              <p className="text-[16px] text-black font-black">Please come again</p>
+            </div>
+
+            {/* Return Policy */}
+            <div className="mt-10 pt-5 border-t-2 border-dashed border-black text-center">
+              <div className="text-[14px] text-black uppercase tracking-widest mb-2 font-black">Return Policy</div>
+              <div className="text-[14px] text-black font-black leading-tight uppercase">
+                Exchange/Return within 3 days<br />
+                with original receipt.
+              </div>
             </div>
           </div>
 
           {/* Jagged Edge Bottom (CSS Clip Path) */}
           <div
-            className="absolute -bottom-3 left-0 w-full h-3 bg-white"
+            className="absolute -bottom-3 left-0 w-full h-3 bg-white print-hidden"
             style={{
               clipPath: 'polygon(0% 0%, 5% 100%, 10% 0%, 15% 100%, 20% 0%, 25% 100%, 30% 0%, 35% 100%, 40% 0%, 45% 100%, 50% 0%, 55% 100%, 60% 0%, 65% 100%, 70% 0%, 75% 100%, 80% 0%, 85% 100%, 90% 0%, 95% 100%, 100% 0%)'
             }}

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { CheckCircle2, AlertTriangle, XCircle, Boxes, Trash2 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, Boxes, Trash2, TrendingUp } from "lucide-react";
 import AddProductModal from "../components/AddProductModal";
 import EditProductModal from "../components/EditProductModal";
 import FormulaManagerModal from "../components/FormulaManagerModal";
@@ -19,6 +19,8 @@ const Inventory = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [showFormulaManager, setShowFormulaManager] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState(null);
+  const [lowStockThresholds, setLowStockThresholds] = useState({ default: 20 });
+  const [loading, setLoading] = useState(true);
 
   const isAdmin = user?.role === "admin";
 
@@ -33,14 +35,30 @@ const Inventory = () => {
   }, [deletingProduct]);
 
   const load = useCallback(async () => {
+    setLoading(true);
     const medicines = await window.api.listMedicines();
+    const settings = await window.api.getSettings();
+
+    const thresholds = { default: parseInt(settings.lowStockThreshold) || 20 };
+    const categories = ["medicine", "cosmetics", "supplements", "medical-devices", "others"];
+    categories.forEach(cat => {
+      const key = `lowStockThreshold_${cat}`;
+      if (settings[key]) {
+        thresholds[cat] = parseInt(settings[key]);
+      }
+    });
+
+    setLowStockThresholds(thresholds);
+
     const formatted = medicines.map((m) => {
       const stock = m.quantity || 0;
+      const threshold = thresholds[m.category] || thresholds.default;
       const status =
-        stock === 0 ? "Out of Stock" : stock < 20 ? "Low Stock" : "In Stock";
+        stock === 0 ? "Out of Stock" : stock < threshold ? "Low Stock" : "In Stock";
       return { ...m, stock, status };
     });
     setProducts(formatted);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -69,9 +87,13 @@ const Inventory = () => {
 
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "in-stock" && p.stock >= 20) ||
-      (statusFilter === "low-stock" && p.stock > 0 && p.stock < 20) ||
-      (statusFilter === "out-of-stock" && p.stock === 0);
+      (() => {
+        const threshold = lowStockThresholds[p.category] || lowStockThresholds.default;
+        if (statusFilter === "in-stock") return p.stock >= threshold;
+        if (statusFilter === "low-stock") return p.stock > 0 && p.stock < threshold;
+        if (statusFilter === "out-of-stock") return p.stock === 0;
+        return true;
+      })();
 
     const matchesCategory =
       categoryFilter === "all" || p.category === categoryFilter;
@@ -79,11 +101,22 @@ const Inventory = () => {
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
+  const categories = ["medicine", "cosmetics", "supplements", "medical-devices", "others"];
+
   const stats = {
     total: products.length,
-    inStock: products.filter((p) => p.stock >= 20).length,
-    lowStock: products.filter((p) => p.stock > 0 && p.stock < 20).length,
+    inStock: products.filter((p) => p.stock >= (lowStockThresholds[p.category] || lowStockThresholds.default)).length,
+    lowStock: products.filter((p) => p.stock > 0 && p.stock < (lowStockThresholds[p.category] || lowStockThresholds.default)).length,
     outOfStock: products.filter((p) => p.stock === 0).length,
+    totalPurchaseCost: products.reduce((acc, p) => acc + (Number(p.purchasePrice || 0) * (p.stock || 0)), 0),
+    totalSaleValue: products.reduce((acc, p) => acc + (Number(p.salePrice || 0) * (p.stock || 0)), 0),
+    categoryStats: categories.reduce((acc, cat) => {
+      const catProducts = products.filter(p => p.category === cat);
+      const buy = catProducts.reduce((sum, p) => sum + (Number(p.purchasePrice || 0) * (p.stock || 0)), 0);
+      const sell = catProducts.reduce((sum, p) => sum + (Number(p.salePrice || 0) * (p.stock || 0)), 0);
+      acc[cat] = { buy, sell, count: catProducts.length };
+      return acc;
+    }, {}),
     categories: {
       medicine: products.filter((p) => p.category === "medicine").length,
       cosmetics: products.filter((p) => p.category === "cosmetics").length,
@@ -92,6 +125,8 @@ const Inventory = () => {
       others: products.filter((p) => p.category === "others").length,
     }
   };
+
+  const potentialProfit = stats.totalSaleValue - stats.totalPurchaseCost;
 
   const handleDelete = (product) => {
     setDeletingProduct(product);
@@ -155,8 +190,12 @@ const Inventory = () => {
                     }`}>Total Products</p>
                   <Boxes className={`h-5 w-5 ${statusFilter === "all" ? "text-blue-200" : "text-blue-500"}`} />
                 </div>
-                <p className={`text-3xl font-black mt-1 ${statusFilter === "all" ? "text-white" : "text-gray-900"
-                  }`}>{stats.total}</p>
+                {loading ? (
+                  <div className="h-9 w-16 bg-current opacity-20 rounded-lg animate-pulse mt-1"></div>
+                ) : (
+                  <p className={`text-3xl font-black mt-1 ${statusFilter === "all" ? "text-white" : "text-gray-900"
+                    }`}>{stats.total}</p>
+                )}
               </button>
 
               <button
@@ -169,8 +208,12 @@ const Inventory = () => {
                     }`}>In Stock</p>
                   <CheckCircle2 className={`h-5 w-5 ${statusFilter === "in-stock" ? "text-emerald-200" : "text-emerald-500"}`} />
                 </div>
-                <p className={`text-3xl font-black mt-1 ${statusFilter === "in-stock" ? "text-white" : "text-gray-900"
-                  }`}>{stats.inStock}</p>
+                {loading ? (
+                  <div className="h-9 w-16 bg-current opacity-20 rounded-lg animate-pulse mt-1"></div>
+                ) : (
+                  <p className={`text-3xl font-black mt-1 ${statusFilter === "in-stock" ? "text-white" : "text-gray-900"
+                    }`}>{stats.inStock}</p>
+                )}
               </button>
 
               <button
@@ -183,8 +226,12 @@ const Inventory = () => {
                     }`}>Low Stock</p>
                   <AlertTriangle className={`h-5 w-5 ${statusFilter === "low-stock" ? "text-amber-100" : "text-amber-500"}`} />
                 </div>
-                <p className={`text-3xl font-black mt-1 ${statusFilter === "low-stock" ? "text-white" : "text-gray-900"
-                  }`}>{stats.lowStock}</p>
+                {loading ? (
+                  <div className="h-9 w-16 bg-current opacity-20 rounded-lg animate-pulse mt-1"></div>
+                ) : (
+                  <p className={`text-3xl font-black mt-1 ${statusFilter === "low-stock" ? "text-white" : "text-gray-900"
+                    }`}>{stats.lowStock}</p>
+                )}
               </button>
 
               <button
@@ -197,10 +244,126 @@ const Inventory = () => {
                     }`}>Out of Stock</p>
                   <XCircle className={`h-5 w-5 ${statusFilter === "out-of-stock" ? "text-rose-200" : "text-rose-500"}`} />
                 </div>
-                <p className={`text-3xl font-black mt-1 ${statusFilter === "out-of-stock" ? "text-white" : "text-gray-900"
-                  }`}>{stats.outOfStock}</p>
+                {loading ? (
+                  <div className="h-9 w-16 bg-current opacity-20 rounded-lg animate-pulse mt-1"></div>
+                ) : (
+                  <p className={`text-3xl font-black mt-1 ${statusFilter === "out-of-stock" ? "text-white" : "text-gray-900"
+                    }`}>{stats.outOfStock}</p>
+                )}
               </button>
             </div>
+
+            {/* Financial Summary Cards */}
+            {isAdmin && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-indigo-500 to-blue-700 p-6 rounded-2xl shadow-xl shadow-indigo-200/50 border border-white/20 transform hover:scale-[1.02] transition-transform duration-300">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                      <Boxes className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Investment</span>
+                  </div>
+                  <h4 className="text-white/80 text-xs font-bold uppercase tracking-wider">Total Purchase Cost</h4>
+                  {loading ? (
+                    <div className="h-9 w-40 bg-white/20 rounded-lg animate-pulse mt-1"></div>
+                  ) : (
+                    <p className="text-3xl font-black text-white mt-1 font-mono">
+                      PKR {stats.totalPurchaseCost.toLocaleString()}
+                    </p>
+                  )}
+                </div>
+
+                <div className="bg-gradient-to-br from-emerald-500 to-teal-700 p-6 rounded-2xl shadow-xl shadow-emerald-200/50 border border-white/20 transform hover:scale-[1.02] transition-transform duration-300">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                      <CheckCircle2 className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Valuation</span>
+                  </div>
+                  <h4 className="text-white/80 text-xs font-bold uppercase tracking-wider">Estimated Sale Value</h4>
+                  {loading ? (
+                    <div className="h-9 w-40 bg-white/20 rounded-lg animate-pulse mt-1"></div>
+                  ) : (
+                    <p className="text-3xl font-black text-white mt-1 font-mono">
+                      PKR {stats.totalSaleValue.toLocaleString()}
+                    </p>
+                  )}
+                </div>
+
+                <div className="bg-gradient-to-br from-violet-500 to-purple-700 p-6 rounded-2xl shadow-xl shadow-violet-200/50 border border-white/20 transform hover:scale-[1.02] transition-transform duration-300">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                      <TrendingUp className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Performance</span>
+                  </div>
+                  <h4 className="text-white/80 text-xs font-bold uppercase tracking-wider">Potential Profit</h4>
+                  {loading ? (
+                    <div className="h-9 w-40 bg-white/20 rounded-lg animate-pulse mt-1"></div>
+                  ) : (
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-black text-white mt-1 font-mono">
+                        PKR {potentialProfit.toLocaleString()}
+                      </p>
+                      <span className="text-xs font-bold text-white/80 bg-white/20 px-2 py-0.5 rounded-full">
+                        {stats.totalPurchaseCost > 0 ? ((potentialProfit / stats.totalPurchaseCost) * 100).toFixed(1) : 0}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Category Financial Breakdown */}
+            {isAdmin && (
+              <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+                <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Category Financial Breakdown</h3>
+                  <span className="text-[10px] font-bold text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full uppercase tracking-tighter">Inventory Valuation</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-50">
+                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Category</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Stock Count</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Purchase Cost</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Sale Value</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Potential Profit</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {categories.map((cat) => {
+                        const s = stats.categoryStats[cat];
+                        const profit = s.sell - s.buy;
+                        return (
+                          <tr key={cat} className="hover:bg-blue-50/30 transition-colors">
+                            <td className="px-6 py-4">
+                              <span className="font-black text-gray-800 uppercase tracking-tight capitalize">{cat.replace("-", " ")}</span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded text-xs font-bold">{s.count} items</span>
+                            </td>
+                            <td className="px-6 py-4 text-right font-mono text-gray-600 font-bold">
+                              PKR {s.buy.toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 text-right font-mono text-blue-600 font-bold">
+                              PKR {s.sell.toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex flex-col items-end">
+                                <span className="font-mono text-emerald-600 font-black">PKR {profit.toLocaleString()}</span>
+                                <span className="text-[9px] font-bold text-gray-400">Margin: {s.buy > 0 ? ((profit / s.buy) * 100).toFixed(1) : 0}%</span>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-col md:flex-row gap-6 items-end bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
               <div className="flex-1 w-full">
@@ -259,67 +422,73 @@ const Inventory = () => {
                 products={filteredProducts}
                 onEditProduct={setEditingProduct}
                 onDeleteProduct={handleDelete}
-                canEdit={isAdmin}
+                isAdmin={isAdmin}
+                lowStockThresholds={lowStockThresholds}
+                loading={loading}
               />
             </div>
           </div>
         </div>
       </div>
 
-      <EditProductModal
-        key={editingProduct?.id}
-        isOpen={!!editingProduct}
-        product={editingProduct}
-        onClose={() => setEditingProduct(null)}
-        onSuccess={load}
-      />
+      {isAdmin && (
+        <>
+          <EditProductModal
+            key={editingProduct?.id}
+            isOpen={!!editingProduct}
+            product={editingProduct}
+            onClose={() => setEditingProduct(null)}
+            onSuccess={load}
+          />
+
+          {showFormulaManager && (
+            <FormulaManagerModal
+              isOpen={showFormulaManager}
+              onClose={() => setShowFormulaManager(false)}
+            />
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {deletingProduct && (
+            <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-100 animate-in fade-in duration-200">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
+                <div className="flex items-center gap-3">
+                  <div className="bg-red-100 p-2.5 rounded-xl">
+                    <Trash2 className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-gray-900">Delete Product</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">This action cannot be undone</p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Are you sure you want to delete <span className="font-bold text-gray-900">"{deletingProduct.name}"</span>?
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setDeletingProduct(null)}
+                    className="flex-1 h-11 rounded-xl border-2 border-gray-100 text-gray-500 font-bold text-sm hover:bg-gray-50 transition-all active:scale-[0.98]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    className="flex-1 h-11 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all active:scale-[0.98]"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       <AddProductModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSuccess={load}
       />
-
-      {isAdmin && (
-        <FormulaManagerModal
-          isOpen={showFormulaManager}
-          onClose={() => setShowFormulaManager(false)}
-        />
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {deletingProduct && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-100 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3">
-              <div className="bg-red-100 p-2.5 rounded-xl">
-                <Trash2 className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <h3 className="text-base font-black text-gray-900">Delete Product</h3>
-                <p className="text-xs text-gray-500 mt-0.5">This action cannot be undone</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Are you sure you want to delete <span className="font-bold text-gray-900">"{deletingProduct.name}"</span>?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDeletingProduct(null)}
-                className="flex-1 h-11 rounded-xl border-2 border-gray-100 text-gray-500 font-bold text-sm hover:bg-gray-50 transition-all active:scale-[0.98]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="flex-1 h-11 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all active:scale-[0.98]"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -21,13 +21,19 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }) {
   const [formulas, setFormulas] = useState([]);
   const [formulaSearch, setFormulaSearch] = useState("");
   const [showFormulaDropdown, setShowFormulaDropdown] = useState(false);
+  const nameInputRef = useRef(null);
   const formulaRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  // Load formulas on mount
+  // Load formulas and focus name input on mount
   useEffect(() => {
     if (isOpen) {
       window.api.listFormulas().then(setFormulas);
+      // Small timeout to ensure the modal is rendered
+      const timer = setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -159,6 +165,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }) {
               <div className="md:col-span-2">
                 <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">Product Name <span className="text-rose-500 ml-1">*</span></label>
                 <input
+                  ref={nameInputRef}
                   className={`${inputClass} !bg-white !border-gray-200 focus:!border-blue-500 h-12 text-base font-medium`}
                   placeholder="e.g. Panadol 500mg Tablets"
                   value={form.name}
@@ -197,7 +204,16 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }) {
               </div>
 
               {/* Formula / Generic Name Combobox */}
-              <div className="md:col-span-2" ref={dropdownRef}>
+              <div
+                className="md:col-span-2"
+                ref={dropdownRef}
+                onBlur={(e) => {
+                  // Only close if focus moves outside the dropdown container
+                  if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setShowFormulaDropdown(false);
+                  }
+                }}
+              >
                 <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">
                   Formula / Generic Name
                 </label>
