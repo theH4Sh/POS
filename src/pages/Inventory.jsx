@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo, useDeferredValue } from "react";
 import { useOutletContext } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { CheckCircle2, AlertTriangle, XCircle, Boxes, Trash2, TrendingUp } from "lucide-react";
@@ -55,14 +55,15 @@ const Inventory = () => {
       const threshold = thresholds[m.category] || thresholds.default;
       const status =
         stock === 0 ? "Out of Stock" : stock < threshold ? "Low Stock" : "In Stock";
-      return { ...m, stock, status };
+      // Precomputed once so search doesn't lowercase every field on every keystroke
+      const searchText = `${m.name} ${m.barcode || ""} ${m.formulaName || ""}`.toLowerCase();
+      return { ...m, stock, status, searchText };
     });
     setProducts(formatted);
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [load]);
 
@@ -79,52 +80,69 @@ const Inventory = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const filteredProducts = products.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.barcode && p.barcode.includes(search)) ||
-      (p.formulaName && p.formulaName.toLowerCase().includes(search.toLowerCase()));
+  // Deferred so typing stays responsive; the filter pass runs at lower priority
+  const deferredSearch = useDeferredValue(search);
 
-    const matchesStatus =
-      statusFilter === "all" ||
-      (() => {
+  const filteredProducts = useMemo(() => {
+    const query = deferredSearch.trim().toLowerCase();
+
+    return products.filter((p) => {
+      if (query && !p.searchText.includes(query)) return false;
+
+      if (statusFilter !== "all") {
         const threshold = lowStockThresholds[p.category] || lowStockThresholds.default;
-        if (statusFilter === "in-stock") return p.stock >= threshold;
-        if (statusFilter === "low-stock") return p.stock > 0 && p.stock < threshold;
-        if (statusFilter === "out-of-stock") return p.stock === 0;
-        return true;
-      })();
+        if (statusFilter === "in-stock" && p.stock < threshold) return false;
+        if (statusFilter === "low-stock" && !(p.stock > 0 && p.stock < threshold)) return false;
+        if (statusFilter === "out-of-stock" && p.stock !== 0) return false;
+      }
 
-    const matchesCategory =
-      categoryFilter === "all" || p.category === categoryFilter;
+      if (categoryFilter !== "all" && p.category !== categoryFilter) return false;
 
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
+      return true;
+    });
+  }, [products, deferredSearch, statusFilter, categoryFilter, lowStockThresholds]);
 
   const categories = ["medicine", "cosmetics", "supplements", "medical-devices", "others"];
 
-  const stats = {
-    total: products.length,
-    inStock: products.filter((p) => p.stock >= (lowStockThresholds[p.category] || lowStockThresholds.default)).length,
-    lowStock: products.filter((p) => p.stock > 0 && p.stock < (lowStockThresholds[p.category] || lowStockThresholds.default)).length,
-    outOfStock: products.filter((p) => p.stock === 0).length,
-    totalPurchaseCost: products.reduce((acc, p) => acc + (Number(p.purchasePrice || 0) * (p.stock || 0)), 0),
-    totalSaleValue: products.reduce((acc, p) => acc + (Number(p.salePrice || 0) * (p.stock || 0)), 0),
-    categoryStats: categories.reduce((acc, cat) => {
-      const catProducts = products.filter(p => p.category === cat);
-      const buy = catProducts.reduce((sum, p) => sum + (Number(p.purchasePrice || 0) * (p.stock || 0)), 0);
-      const sell = catProducts.reduce((sum, p) => sum + (Number(p.salePrice || 0) * (p.stock || 0)), 0);
-      acc[cat] = { buy, sell, count: catProducts.length };
-      return acc;
-    }, {}),
-    categories: {
-      medicine: products.filter((p) => p.category === "medicine").length,
-      cosmetics: products.filter((p) => p.category === "cosmetics").length,
-      supplements: products.filter((p) => p.category === "supplements").length,
-      "medical-devices": products.filter((p) => p.category === "medical-devices").length,
-      others: products.filter((p) => p.category === "others").length,
+  // Single pass over products instead of ~12; only recomputed when data changes
+  const stats = useMemo(() => {
+    const result = {
+      total: products.length,
+      inStock: 0,
+      lowStock: 0,
+      outOfStock: 0,
+      totalPurchaseCost: 0,
+      totalSaleValue: 0,
+      categoryStats: {},
+      categories: {},
+    };
+    for (const cat of categories) {
+      result.categoryStats[cat] = { buy: 0, sell: 0, count: 0 };
+      result.categories[cat] = 0;
     }
-  };
+
+    for (const p of products) {
+      const threshold = lowStockThresholds[p.category] || lowStockThresholds.default;
+      if (p.stock === 0) result.outOfStock++;
+      else if (p.stock < threshold) result.lowStock++;
+      if (p.stock >= threshold) result.inStock++;
+
+      const buy = Number(p.purchasePrice || 0) * (p.stock || 0);
+      const sell = Number(p.salePrice || 0) * (p.stock || 0);
+      result.totalPurchaseCost += buy;
+      result.totalSaleValue += sell;
+
+      const catStat = result.categoryStats[p.category];
+      if (catStat) {
+        catStat.buy += buy;
+        catStat.sell += sell;
+        catStat.count++;
+        result.categories[p.category]++;
+      }
+    }
+    return result;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products, lowStockThresholds]);
 
   const potentialProfit = stats.totalSaleValue - stats.totalPurchaseCost;
 
