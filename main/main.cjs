@@ -9,7 +9,7 @@ const { machineIdSync } = require("node-machine-id");
 const { ALLOWED_MACHINE } = require("./config.cjs");
 
 // Disable Hardware Acceleration for physical display rendering stability
-app.disableHardwareAcceleration();
+//app.disableHardwareAcceleration();
 
 let mainWindow;
 
