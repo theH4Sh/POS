@@ -88,18 +88,25 @@ const Dashboard = () => {
 
     if (!query) return matchesProcessor;
 
+    const matchesProduct = (order.items || []).some(
+      (item) => item.name && item.name.toLowerCase().includes(query)
+    );
+
     let matchesSearch = false;
     if (searchType === 'all') {
       matchesSearch =
         order.id.toString().includes(query) ||
         order.total.toString().includes(query) ||
-        order.processedBy.toLowerCase().includes(query);
+        order.processedBy.toLowerCase().includes(query) ||
+        matchesProduct;
     } else if (searchType === 'id') {
       matchesSearch = order.id.toString().includes(query);
     } else if (searchType === 'amount') {
       matchesSearch = order.total.toString().includes(query);
     } else if (searchType === 'cashier') {
       matchesSearch = order.processedBy.toLowerCase().includes(query);
+    } else if (searchType === 'product') {
+      matchesSearch = matchesProduct;
     }
 
     return matchesSearch && matchesProcessor;
@@ -475,6 +482,7 @@ const Dashboard = () => {
                   <option value="id">ID #</option>
                   <option value="amount">Amount</option>
                   <option value="cashier">Cashier</option>
+                  <option value="product">Product</option>
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                   <ChevronDown className="h-3 w-3" />
@@ -490,7 +498,8 @@ const Dashboard = () => {
                     searchType === 'id' ? "Order #..." :
                       searchType === 'amount' ? "Exact amount..." :
                         searchType === 'cashier' ? "Staff name..." :
-                          "Search orders..."
+                          searchType === 'product' ? "Product name..." :
+                            "Search orders..."
                   }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
